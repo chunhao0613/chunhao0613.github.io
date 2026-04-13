@@ -3,15 +3,27 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function BlogPost() {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/#blog");
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans pt-20 pb-20">
       <div className="max-w-3xl mx-auto px-6">
-        <Link href="/#blog" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-12 transition-colors">
+        <button type="button" onClick={handleBack} className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-12 transition-colors">
           <ArrowLeft size={18} />
-          回到技術筆記
-        </Link>
+          回到上一頁
+        </button>
 
         <article className="prose prose-invert max-w-none">
           <header className="mb-12 border-b border-zinc-800 pb-8">
