@@ -531,21 +531,25 @@ export default function Home() {
               {
                 title: "如何將複雜的系統架構轉化為易懂的交接文件",
                 date: "Apr 11, 2026",
+                excerpt: "整理我怎麼把系統設計、圖表與交接內容整理成團隊一看就能接手的文件。",
                 href: "/blog/architecture-documentation",
               },
               {
                 title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
                 date: "Apr 05, 2026",
+                excerpt: "從需求、索引到問答流程，一步步把 RAG 做成可以實際操作的網頁服務。",
                 href: "/blog/langchain-rag",
               },
               {
                 title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
                 date: "Apr 08, 2026",
+                excerpt: "記錄在智慧家居專題裡，為什麼最後選擇 IOTA 的 Tangle，而不是傳統區塊鏈。",
                 href: "/blog/smart-home-security",
               },
               {
                 title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
                 date: "Apr 02, 2026",
+                excerpt: "把需求寫清楚、寫完整，讓開發團隊和利害關係人有一致的理解。",
                 href: "/blog/srs-guide",
               },
             ].map((post, idx) => (
@@ -554,14 +558,23 @@ export default function Home() {
                   href={post.href}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
-                  className="group block bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-6 transition-all hover:-translate-y-1"
+                  className="group flex h-full min-h-[240px] flex-col justify-between bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/35"
                 >
-                  <span className="text-xs font-mono text-zinc-500 mb-3 block">
-                    {post.date}
-                  </span>
-                  <h3 className="text-xl font-bold text-zinc-300 group-hover:text-white transition-colors">
-                    {post.title}
-                  </h3>
+                  <div>
+                    <span className="text-xs font-mono text-zinc-500 mb-4 block">
+                      {post.date}
+                    </span>
+                    <h3 className="text-xl font-bold text-zinc-300 group-hover:text-white transition-colors leading-snug">
+                      {post.title}
+                    </h3>
+                    <p className="mt-4 text-sm leading-relaxed text-zinc-400 line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                  </div>
+                  <div className="mt-6 flex items-center gap-2 text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">
+                    <span>閱讀文章</span>
+                    <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </div>
                 </a>
               </Reveal>
             ))}
