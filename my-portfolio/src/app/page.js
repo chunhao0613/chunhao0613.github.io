@@ -446,15 +446,17 @@ export default function Home() {
                 title: "安全智慧家居系統 (基於 IOTA)",
                 desc: "專題製作。結合物聯網與區塊鏈概念，運用 IOTA 的 Tangle 網路特性，打造去中心化、高安全性的智慧家居控制平台，確保設備數據傳輸的安全與不可篡改性。",
                 tags: ["IOTA", "C++", "IoT", "System Architecture"],
-                year: "2024",
+                year: "Apr 08, 2026",
                 img: "[IOTA Smart Home Image]",
               },
               {
                 title: "AI 知識庫系統 (RAG 架構)",
                 desc: "整合 LangChain 框架與外部 LLM API，開發網站式的本地資料庫檢索生成系統。透過 RAG 技術，讓 AI 能基於本地機密或專屬資料進行精準回答，大幅提升專業性。",
                 tags: ["Python", "LangChain", "RAG", "API Integration"],
-                year: "2023",
+                year: "Apr 05, 2026",
                 img: "[RAG System Image]",
+                link: "https://ragproject--chunhao0613.replit.app/",
+                linkLabel: "開啟 RAG Demo",
               },
             ].map((project, idx) => (
               <Reveal
@@ -509,6 +511,19 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
+                    {project.link && (
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+                      >
+                        {project.linkLabel || "查看連結"}
+                        <ArrowUpRight size={16} />
+                      </a>
+                    )}
                   </div>
                 </div>
               </Reveal>
