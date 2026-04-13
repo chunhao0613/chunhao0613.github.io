@@ -20,7 +20,7 @@ export default function BlogPost() {
               物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？
             </h1>
             <p className="text-xl text-zinc-400">
-              在設計安全的智慧家居系統時，我們面臨了關鍵的技術選擇。本文探討為什麼 IOTA 的 Tangle 網路比傳統區塊鏈更適合物聯網應用。
+              在設計安全的智慧家居系統時，我們做過不少技術取捨。這篇會說明為什麼最後選擇 IOTA 的 Tangle，而不是傳統區塊鏈。
             </p>
           </header>
 
@@ -60,7 +60,7 @@ export default function BlogPost() {
 
             <div className="mt-12 pt-8 border-t border-zinc-800">
               <p className="text-sm text-zinc-500">
-                本文章正在撰寫中。如有任何建議或期望的內容，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
+                文章仍在撰寫中。如果你有想看的內容或建議，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
               </p>
             </div>
           </section>

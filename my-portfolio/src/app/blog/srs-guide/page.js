@@ -20,7 +20,7 @@ export default function BlogPost() {
               從需求到實作：SRS 軟體需求規格書撰寫指南
             </h1>
             <p className="text-xl text-zinc-400">
-              SRS（Software Requirements Specification）是軟體開發的藍圖。本文分享如何撰寫清晰、全面的需求規格書，確保開發團隊與利益相關者的共識。
+              SRS（Software Requirements Specification）是開發前最重要的對齊文件。這篇會分享我怎麼把需求寫清楚、寫完整，讓團隊和利害關係人有一致理解。
             </p>
           </header>
 
@@ -60,7 +60,7 @@ export default function BlogPost() {
 
             <div className="mt-12 pt-8 border-t border-zinc-800">
               <p className="text-sm text-zinc-500">
-                本文章正在撰寫中。如有任何建議或期望的內容，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
+                文章仍在撰寫中。如果你有想看的內容或建議，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
               </p>
             </div>
           </section>

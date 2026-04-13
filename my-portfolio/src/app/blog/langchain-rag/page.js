@@ -25,17 +25,17 @@ export default function BlogPost() {
               初探 LangChain：打造個人化的 RAG 本地知識庫
             </h1>
             <p className="text-lg md:text-xl text-zinc-400 max-w-3xl leading-relaxed">
-              這篇文章整理我如何從需求出發，建立一個可實際使用的 RAG
-              系統，並將知識檢索流程落地成可操作的網頁服務。
+              這篇會整理我從需求出發，實作一套真正可使用的 RAG
+              系統，並把知識檢索流程做成可以直接操作的網頁服務。
             </p>
           </header>
 
           <section className="bg-zinc-900/20 border border-zinc-800/50 rounded-xl p-6 mb-8">
             <h2 className="text-2xl font-bold mb-3">專案價值主張</h2>
             <p className="text-zinc-400 leading-relaxed">
-              這個專案聚焦在「可用性」而不是只做出能展示的 RAG Demo。除了上傳 PDF
-              與問答流程，我把多 Provider 模型切換、索引快取重用、配額超限降級、執行狀態顯示都整合到同一個介面，
-              讓系統在真實環境中更穩定、更容易維運。
+              這個專案重點是「真的能用」，不只是能展示的 RAG Demo。除了上傳 PDF
+              與問答流程，我把多 Provider 模型切換、索引快取重用、配額超限降級、執行狀態顯示整合在同一個介面，
+              讓它在真實環境下更穩定，也更好維運。
             </p>
           </section>
 
@@ -49,7 +49,7 @@ export default function BlogPost() {
                 {[
                   {
                     title: "多模型 Provider 切換",
-                    desc: "Embedding 與 LLM 可分別切換，涵蓋 Google、Cohere、Together、HuggingFace、Groq、GitHub Models。",
+                    desc: "Embedding 與 LLM 可以分開切換，涵蓋 Google、Cohere、Together、HuggingFace、Groq、GitHub Models。",
                   },
                   {
                     title: "索引快取重用",
@@ -57,7 +57,7 @@ export default function BlogPost() {
                   },
                   {
                     title: "配額降級與容錯",
-                    desc: "遇到 quota 或模型不可用時，改用擷取式回答或 local-hash embeddings 以維持可用性。",
+                    desc: "遇到 quota 或模型不可用時，會改用擷取式回答或 local-hash embeddings，盡量維持可用性。",
                   },
                   {
                     title: "執行狀態可觀測",
@@ -141,7 +141,7 @@ export default function BlogPost() {
                 RAG 網頁使用端
               </h3>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                直接開啟網頁版本，體驗檢索與回答流程。
+                直接開啟網頁版，體驗檢索與回答流程。
               </p>
               <span className="inline-flex items-center gap-2 text-zinc-300 group-hover:text-white transition-colors">
                 前往 Demo <ArrowUpRight size={16} />
@@ -160,17 +160,17 @@ export default function BlogPost() {
                 Embedding。
               </li>
               <li>
-                不同 LLM/Embedding Provider 的成本、配額與回答穩定度不同，建議在介面上做模型切換驗證。
+                不同 LLM/Embedding Provider 的成本、配額與回答穩定度都不一樣，建議在介面上實際切換驗證。
               </li>
               <li>
-                API Key 採前端 localStorage 暫存僅為開發便利，正式環境建議集中使用伺服器端 Secret 管理。
+                API Key 先放前端 localStorage 只是開發期方便，正式環境建議改成伺服器端 Secret 管理。
               </li>
             </ul>
           </section>
 
           <section className="pt-8 border-t border-zinc-800">
             <p className="text-sm text-zinc-500">
-              本文章正在撰寫中。如有任何建議或你希望我補充的技術細節，歡迎
+              文章仍在持續補充中。如果你有想看的主題或希望我補充的技術細節，歡迎
               <Link href="/#contact" className="text-white hover:text-zinc-300 underline">
                 聯絡我
               </Link>

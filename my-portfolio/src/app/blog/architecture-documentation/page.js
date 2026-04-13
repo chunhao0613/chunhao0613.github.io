@@ -20,7 +20,7 @@ export default function BlogPost() {
               如何將複雜的系統架構轉化為易懂的交接文件
             </h1>
             <p className="text-xl text-zinc-400">
-              系統架構文件對於團隊協作至關重要。本文探討如何用清晰的層次、圖表與範例，讓複雜的設計變得易於理解。
+              架構文件會直接影響團隊協作效率。這篇會整理我如何用清楚的層次、圖表和範例，把複雜設計講到大家都看得懂。
             </p>
           </header>
 
@@ -56,7 +56,7 @@ export default function BlogPost() {
 
             <div className="mt-12 pt-8 border-t border-zinc-800">
               <p className="text-sm text-zinc-500">
-                本文章正在撰寫中。如有任何建議或期望的內容，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
+                文章仍在撰寫中。如果你有想看的內容或建議，歡迎<Link href="/#contact" className="text-white hover:text-zinc-300 underline">聯絡我</Link>。
               </p>
             </div>
           </section>

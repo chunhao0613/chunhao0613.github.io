@@ -378,9 +378,8 @@ export default function Home() {
               </Reveal>
               <Reveal delay={200} type="fade-up" triggerOnMount={true}>
                 <p className="text-lg text-zinc-400 leading-relaxed mb-10 max-w-lg">
-                  我是一名對開發充滿好奇心與創新思維的軟體人。擅長將複雜的技術概念轉化為易懂的架構與交接文件，包含嚴謹的
-                  SRS 與系統分析。具備多元的技術棧，從建構 AI RAG
-                  應用到區塊鏈智慧家居，熱衷於將各種點子落地解決實際問題。
+                  我對開發一直保持好奇，也習慣把想法做成能驗證的成果。擅長把複雜技術整理成好閱讀的架構與交接文件，包含嚴謹的
+                  SRS 與系統分析。技術範圍從 AI RAG 應用到區塊鏈智慧家居，持續把點子落地成能解決真實問題的方案。
                 </p>
               </Reveal>
               <Reveal delay={300} type="fade-up" triggerOnMount={true}>
@@ -523,7 +522,7 @@ export default function Home() {
               <BookOpen className="text-zinc-500" /> 技術筆記
             </h2>
             <p className="text-zinc-400 mb-12 max-w-2xl">
-              除了寫程式，我也習慣將踩坑經驗與學習心得記錄下來。這幫助我釐清思緒，也希望能幫助到遇到相同問題的開發者。
+              除了寫程式，我也會把踩坑過程和學習心得記下來。這不只幫我整理思路，也希望能讓遇到同樣問題的人少走一點彎路。
             </p>
           </Reveal>
 
@@ -575,8 +574,8 @@ export default function Home() {
               準備好聊聊了嗎？
             </h2>
             <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg">
-              我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷與技能符合你們團隊的需求，歡迎隨時透過
-              Email 與我聯繫！
+              我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷和技能符合團隊需求，歡迎直接用
+              Email 找我聊聊。
             </p>
 
             <a
