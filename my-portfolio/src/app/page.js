@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowUpRight,
   GitBranch,
-  Link2,
   Mail,
   BookOpen,
   Menu,
@@ -14,6 +13,27 @@ import {
   Moon,
   Code,
 } from "lucide-react";
+
+// 性能優化：CSS Variables 追蹤滑鼠座標，避免 React 高頻重新渲染
+const useMouseTracking = () => {
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
+        document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+};
 
 const useScrollReveal = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -75,7 +95,6 @@ const Reveal = ({
 };
 
 export default function Home() {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -83,6 +102,9 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [fps, setFps] = useState(0);
   const [clickRipples, setClickRipples] = useState([]);
+
+  // 初始化滑鼠追蹤（性能優化）
+  useMouseTracking();
 
   useEffect(() => {
     const updateTime = () => {
@@ -115,7 +137,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollTop;
       const windowHeight =
@@ -125,10 +146,8 @@ export default function Home() {
       setScrollProgress(scroll);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
@@ -146,14 +165,24 @@ export default function Home() {
     return () => window.removeEventListener("click", handleMouseClick);
   }, [handleMouseClick]);
 
+  // Escape 鍵關閉側欄（無障礙）
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isSidebarOpen]);
+
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
 
   return (
     <div
-      className={`min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden transition-colors duration-500 ${
-        isDarkMode ? "" : "theme-light"
-      }`}
+      data-theme={isDarkMode ? "dark" : "light"}
+      className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden transition-colors duration-500"
     >
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"
@@ -168,6 +197,7 @@ export default function Home() {
           <span className="w-16 text-center">{time}</span>
         </div>
         <button
+          aria-label="切換白天/黑夜模式"
           onClick={() => setIsDarkMode(!isDarkMode)}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -179,6 +209,7 @@ export default function Home() {
       </div>
 
       <button
+        aria-label="開啟選單"
         onClick={() => setIsSidebarOpen(true)}
         onMouseEnter={() => {
           handleMouseEnter();
@@ -215,6 +246,7 @@ export default function Home() {
             MENU
           </span>
           <button
+            aria-label="關閉選單"
             onClick={() => setIsSidebarOpen(false)}
             className="p-2 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-full transition-all"
           >
@@ -254,28 +286,29 @@ export default function Home() {
           animation: ripple-click 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
         }
 
-        .theme-light.bg-zinc-950 { background-color: #f8fafc !important; }
-        .theme-light .bg-zinc-950 { background-color: #f8fafc !important; }
-        .theme-light .bg-zinc-900 { background-color: #ffffff !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .theme-light .bg-zinc-900\\/50, .theme-light .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7) !important; }
-        .theme-light .bg-zinc-800 { background-color: #e2e8f0 !important; }
-        .theme-light .text-zinc-200 { color: #1e293b !important; }
-        .theme-light .text-zinc-300 { color: #334155 !important; }
-        .theme-light .text-zinc-400 { color: #475569 !important; }
-        .theme-light .text-zinc-500 { color: #64748b !important; }
-        .theme-light .text-zinc-600 { color: #94a3b8 !important; }
-        .theme-light .text-zinc-700 { color: #cbd5e1 !important; }
-        .theme-light .border-zinc-800 { border-color: #e2e8f0 !important; }
-        .theme-light .border-zinc-800\\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
-        .theme-light .border-zinc-900 { border-color: #cbd5e1 !important; }
-        .theme-light .border-zinc-700 { border-color: #94a3b8 !important; }
-        .theme-light .bg-white { background-color: #0f172a !important; color: #ffffff !important; }
-        .theme-light .text-black { color: #ffffff !important; }
-        .theme-light .hover\\:text-white:hover { color: #0f172a !important; }
-        .theme-light .group:hover .group-hover\\:text-white { color: #0f172a !important; }
-        .theme-light .group:hover .group-hover\\:text-zinc-200 { color: #1e293b !important; }
-        .theme-light .hover\\:bg-zinc-800:hover { background-color: #f1f5f9 !important; }
-        .theme-light .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9 !important; }
+        [data-theme="light"].bg-zinc-950,
+        [data-theme="light"] .bg-zinc-950 { background-color: #f8fafc; }
+        [data-theme="light"] .bg-zinc-900 { background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        [data-theme="light"] .bg-zinc-900\\/50, 
+        [data-theme="light"] .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7); }
+        [data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
+        [data-theme="light"] .text-zinc-200 { color: #1e293b; }
+        [data-theme="light"] .text-zinc-300 { color: #334155; }
+        [data-theme="light"] .text-zinc-400 { color: #475569; }
+        [data-theme="light"] .text-zinc-500 { color: #64748b; }
+        [data-theme="light"] .text-zinc-600 { color: #94a3b8; }
+        [data-theme="light"] .text-zinc-700 { color: #cbd5e1; }
+        [data-theme="light"] .border-zinc-800 { border-color: #e2e8f0; }
+        [data-theme="light"] .border-zinc-800\\/50 { border-color: rgba(226, 232, 240, 0.5); }
+        [data-theme="light"] .border-zinc-900 { border-color: #cbd5e1; }
+        [data-theme="light"] .border-zinc-700 { border-color: #94a3b8; }
+        [data-theme="light"] .bg-white { background-color: #0f172a; color: #ffffff; }
+        [data-theme="light"] .text-black { color: #ffffff; }
+        [data-theme="light"] .hover\\:text-white:hover,
+        [data-theme="light"] .group:hover .group-hover\\:text-white { color: #0f172a; }
+        [data-theme="light"] .group:hover .group-hover\\:text-zinc-200 { color: #1e293b; }
+        [data-theme="light"] .hover\\:bg-zinc-800:hover,
+        [data-theme="light"] .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9; }
       `}</style>
 
       {clickRipples.map((ripple) => (
@@ -297,7 +330,7 @@ export default function Home() {
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, ${
+          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${
             isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
           }, transparent 40%)`,
         }}
@@ -307,9 +340,7 @@ export default function Home() {
           isHovering ? "w-16 h-16 bg-white/20" : "w-8 h-8 bg-transparent"
         }`}
         style={{
-          transform: `translate(${mousePos.x - (isHovering ? 32 : 16)}px, ${
-            mousePos.y - (isHovering ? 32 : 16)
-          }px)`,
+          transform: `translate(calc(var(--mouse-x, 50%) - ${isHovering ? 32 : 16}px), calc(var(--mouse-y, 50%) - ${isHovering ? 32 : 16}px))`,
         }}
       >
         <div
@@ -501,23 +532,27 @@ export default function Home() {
               {
                 title: "如何將複雜的系統架構轉化為易懂的交接文件",
                 date: "Mar 12, 2024",
+                href: "/blog/architecture-documentation",
               },
               {
                 title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
                 date: "Jan 05, 2024",
+                href: "/blog/langchain-rag",
               },
               {
                 title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
                 date: "Nov 20, 2023",
+                href: "/blog/smart-home-security",
               },
               {
                 title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
                 date: "Sep 15, 2023",
+                href: "/blog/srs-guide",
               },
             ].map((post, idx) => (
               <Reveal key={idx} delay={idx * 100} type="fade-up">
                 <a
-                  href="#"
+                  href={post.href}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
                   className="group block bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-6 transition-all hover:-translate-y-1"
@@ -545,7 +580,7 @@ export default function Home() {
             </p>
 
             <a
-              href="mailto:your.email@example.com"
+              href="mailto:chunhao0613@gmail.com"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               className="inline-flex items-center gap-3 bg-zinc-200 text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform"
@@ -555,20 +590,15 @@ export default function Home() {
 
             <div className="mt-24 flex justify-center gap-6 relative z-10">
               <a
-                href="#"
+                href="https://github.com/chunhao0613"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub 個人頁面"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 className="p-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
               >
                 <GitBranch size={20} />
-              </a>
-              <a
-                href="#"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                className="p-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
-              >
-                <Link2 size={20} />
               </a>
             </div>
           </Reveal>
