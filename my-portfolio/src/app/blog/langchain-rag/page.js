@@ -150,6 +150,19 @@ export default function BlogPost() {
           </section>
 
           <section className="bg-zinc-900/20 border border-zinc-800/50 rounded-xl p-6 mb-10">
+            <h2 className="text-xl font-bold text-zinc-200 mb-4">RAG 網站使用步驟與 Key 說明</h2>
+            <ol className="space-y-3 text-zinc-400 leading-relaxed list-decimal pl-5 mb-6">
+              <li>使用者需自行輸入可用的 API Key（例如 Google、Cohere、Groq 或 GitHub Models）。</li>
+              <li>上傳 PDF 文件後，先執行 Embedding 建立索引，再開始提問。</li>
+              <li>若回答品質或可用性不理想，可切換 Provider/Model 後重新測試。</li>
+            </ol>
+            <p className="text-zinc-400 leading-relaxed">
+              你輸入的 API Key 會存放在你的瀏覽器 localStorage（裝置端）做使用體驗優化；
+              我不會主動蒐集、備份或盜取你的 API Key。
+            </p>
+          </section>
+
+          <section className="bg-zinc-900/20 border border-zinc-800/50 rounded-xl p-6 mb-10">
             <div className="inline-flex items-center gap-2 text-zinc-300 mb-4">
               <ShieldAlert size={18} />
               <h2 className="text-xl font-bold">限制與實務注意</h2>
