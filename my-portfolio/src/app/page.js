@@ -530,22 +530,22 @@ export default function Home() {
             {[
               {
                 title: "如何將複雜的系統架構轉化為易懂的交接文件",
-                date: "Mar 12, 2024",
+                date: "Apr 11, 2026",
                 href: "/blog/architecture-documentation",
               },
               {
                 title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
-                date: "Jan 05, 2024",
+                date: "Apr 05, 2026",
                 href: "/blog/langchain-rag",
               },
               {
                 title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
-                date: "Nov 20, 2023",
+                date: "Apr 08, 2026",
                 href: "/blog/smart-home-security",
               },
               {
                 title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
-                date: "Sep 15, 2023",
+                date: "Apr 02, 2026",
                 href: "/blog/srs-guide",
               },
             ].map((post, idx) => (

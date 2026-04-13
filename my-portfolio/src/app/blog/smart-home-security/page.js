@@ -15,7 +15,7 @@ export default function BlogPost() {
 
         <article className="prose prose-invert max-w-none">
           <header className="mb-12 border-b border-zinc-800 pb-8">
-            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Nov 20, 2023</time>
+            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Apr 08, 2026</time>
             <h1 className="text-5xl font-bold mt-4 mb-6">
               物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？
             </h1>

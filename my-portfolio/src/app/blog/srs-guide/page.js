@@ -15,7 +15,7 @@ export default function BlogPost() {
 
         <article className="prose prose-invert max-w-none">
           <header className="mb-12 border-b border-zinc-800 pb-8">
-            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Sep 15, 2023</time>
+            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Apr 02, 2026</time>
             <h1 className="text-5xl font-bold mt-4 mb-6">
               從需求到實作：SRS 軟體需求規格書撰寫指南
             </h1>

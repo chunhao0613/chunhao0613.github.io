@@ -15,7 +15,7 @@ export default function BlogPost() {
 
         <article className="prose prose-invert max-w-none">
           <header className="mb-12 border-b border-zinc-800 pb-8">
-            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Mar 12, 2024</time>
+            <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Apr 11, 2026</time>
             <h1 className="text-5xl font-bold mt-4 mb-6">
               如何將複雜的系統架構轉化為易懂的交接文件
             </h1>
