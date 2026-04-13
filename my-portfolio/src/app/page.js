@@ -456,7 +456,6 @@ export default function Home() {
                 tags: ["Python", "LangChain", "RAG", "API Integration"],
                 year: "2023",
                 img: "[RAG System Image]",
-                repo: "https://github.com/chunhao0613/rag_project",
               },
             ].map((project, idx) => (
               <Reveal
@@ -511,18 +510,6 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
-                    {project.repo && (
-                      <a
-                        href={project.repo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
-                      >
-                        查看原始碼 <ArrowUpRight size={16} />
-                      </a>
-                    )}
                   </div>
                 </div>
               </Reveal>
