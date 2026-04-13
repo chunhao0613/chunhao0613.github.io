@@ -456,6 +456,7 @@ export default function Home() {
                 tags: ["Python", "LangChain", "RAG", "API Integration"],
                 year: "2023",
                 img: "[RAG System Image]",
+                repo: "https://github.com/chunhao0613/rag_project",
               },
             ].map((project, idx) => (
               <Reveal
@@ -510,6 +511,18 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
+                    {project.repo && (
+                      <a
+                        href={project.repo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+                      >
+                        查看原始碼 <ArrowUpRight size={16} />
+                      </a>
+                    )}
                   </div>
                 </div>
               </Reveal>
@@ -580,7 +593,9 @@ export default function Home() {
             </p>
 
             <a
-              href="mailto:chunhao0613@gmail.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=chunhao0613@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               className="inline-flex items-center gap-3 bg-zinc-200 text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform"
@@ -596,9 +611,11 @@ export default function Home() {
                 aria-label="GitHub 個人頁面"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                className="p-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+                className="inline-flex items-center gap-2 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all font-medium"
+                title="前往 GitHub 個人頁面"
               >
                 <GitBranch size={20} />
+                <span>GitHub</span>
               </a>
             </div>
           </Reveal>
