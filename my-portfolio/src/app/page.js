@@ -102,6 +102,8 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [fps, setFps] = useState(0);
   const [clickRipples, setClickRipples] = useState([]);
+  const sidebarOpenTimerRef = useRef(null);
+  const sidebarCloseTimerRef = useRef(null);
 
   // 初始化滑鼠追蹤（性能優化）
   useMouseTracking();
@@ -179,6 +181,49 @@ export default function Home() {
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
 
+  const openSidebar = useCallback(() => {
+    if (sidebarCloseTimerRef.current) {
+      clearTimeout(sidebarCloseTimerRef.current);
+      sidebarCloseTimerRef.current = null;
+    }
+
+    if (isSidebarOpen) {
+      return;
+    }
+
+    if (sidebarOpenTimerRef.current) {
+      clearTimeout(sidebarOpenTimerRef.current);
+    }
+
+    sidebarOpenTimerRef.current = setTimeout(() => {
+      setIsSidebarOpen(true);
+      sidebarOpenTimerRef.current = null;
+    }, 80);
+  }, [isSidebarOpen]);
+
+  const closeSidebar = useCallback(() => {
+    if (sidebarOpenTimerRef.current) {
+      clearTimeout(sidebarOpenTimerRef.current);
+      sidebarOpenTimerRef.current = null;
+    }
+
+    if (sidebarCloseTimerRef.current) {
+      clearTimeout(sidebarCloseTimerRef.current);
+    }
+
+    sidebarCloseTimerRef.current = setTimeout(() => {
+      setIsSidebarOpen(false);
+      sidebarCloseTimerRef.current = null;
+    }, 120);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (sidebarOpenTimerRef.current) clearTimeout(sidebarOpenTimerRef.current);
+      if (sidebarCloseTimerRef.current) clearTimeout(sidebarCloseTimerRef.current);
+    };
+  }, []);
+
   return (
     <div
       data-theme={isDarkMode ? "dark" : "light"}
@@ -186,7 +231,8 @@ export default function Home() {
     >
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"
-        onMouseEnter={() => setIsSidebarOpen(true)}
+        onMouseEnter={openSidebar}
+        onMouseLeave={closeSidebar}
       />
 
       <div className="fixed top-6 right-6 z-50 flex items-center gap-3 font-mono text-[10px] sm:text-xs text-zinc-500 pointer-events-none">
@@ -213,7 +259,7 @@ export default function Home() {
         onClick={() => setIsSidebarOpen(true)}
         onMouseEnter={() => {
           handleMouseEnter();
-          setIsSidebarOpen(true);
+          openSidebar();
         }}
         onMouseLeave={handleMouseLeave}
         className={`fixed top-6 left-6 z-40 p-3 bg-zinc-900/50 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all backdrop-blur-md ${
@@ -232,9 +278,16 @@ export default function Home() {
             : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
+        onMouseEnter={() => {
+          if (sidebarCloseTimerRef.current) {
+            clearTimeout(sidebarCloseTimerRef.current);
+            sidebarCloseTimerRef.current = null;
+          }
+        }}
       />
       <div
-        onMouseLeave={() => setIsSidebarOpen(false)}
+        onMouseEnter={openSidebar}
+        onMouseLeave={closeSidebar}
         className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 ${
           isSidebarOpen
             ? "translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
@@ -458,13 +511,23 @@ export default function Home() {
                 link: "https://ragproject--chunhao0613.replit.app/",
                 linkLabel: "開啟 RAG Demo",
               },
-            ].map((project, idx) => (
+            ].map((project, idx) => {
+              const CardTag = project.link ? "a" : "div";
+
+              return (
               <Reveal
                 key={idx}
                 delay={0}
                 type={idx % 2 === 0 ? "slide-left" : "slide-right"}
               >
-                <div
+                <CardTag
+                  {...(project.link
+                    ? {
+                        href: project.link,
+                        target: "_blank",
+                        rel: "noopener noreferrer",
+                      }
+                    : {})}
                   className="group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer"
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
@@ -511,23 +574,15 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
-                    {project.link && (
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
-                      >
-                        {project.linkLabel || "查看連結"}
-                        <ArrowUpRight size={16} />
-                      </a>
-                    )}
+                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      <span>{project.linkLabel || "查看連結"}</span>
+                      <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    </div>
                   </div>
-                </div>
+                </CardTag>
               </Reveal>
-            ))}
+              );
+            })}
           </div>
         </section>
 
