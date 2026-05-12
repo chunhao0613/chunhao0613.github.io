@@ -36,7 +36,7 @@ const Reveal = ({ children, delay = 0, className = '', type = 'fade-up', trigger
   }, [triggerOnMount]);
 
   const isVisible = triggerOnMount ? mountedVisible : scrollVisible;
-  
+
   let initialClass = 'opacity-0 translate-y-12';
   if (type === 'slide-left') initialClass = 'opacity-0 -translate-x-16';
   if (type === 'slide-right') initialClass = 'opacity-0 translate-x-16';
@@ -47,9 +47,8 @@ const Reveal = ({ children, delay = 0, className = '', type = 'fade-up', trigger
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? visibleClass : initialClass
-      } ${className}`}
+      className={`transition-all duration-1000 ease-out ${isVisible ? visibleClass : initialClass
+        } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -136,7 +135,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden transition-colors duration-500 ${isDarkMode ? '' : 'theme-light'}`}>
-      
+
       {/* 側邊欄感應區 */}
       <div className="fixed inset-y-0 left-0 w-8 md:w-12 z-40" onMouseEnter={() => setIsSidebarOpen(true)} />
 
@@ -250,7 +249,7 @@ export default function App() {
       </div>
 
       <main className="relative z-10 max-w-6xl mx-auto px-6">
-        
+
         {/* --- 第一畫面: 自我介紹 (直球對決) --- */}
         <section id="about" className="min-h-screen flex items-center border-b border-zinc-900 pt-20">
           <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
@@ -295,18 +294,20 @@ export default function App() {
                   <div className="w-3 h-3 rounded-full bg-green-500/50" />
                 </div>
                 <div className="text-green-400 mb-2">➜  ~  cat profile.json</div>
-                <pre className="text-zinc-300 overflow-x-auto">
-                  <code>{`{
-  "name": "Chun-Hao Yu (鮭魚)",
-  "education": "MCU-CSIE",
-  "skills": {
-    "languages": ["C++", "Java", "Python", "PHP"],
-    "ai_tech": ["RAG", "LangChain", "LLM API"],
-    "domain": ["System Analysis", "SRS", "IOTA"],
-    "tools": ["Git", "RESTful API"]
-  },
-  "mindset": ["Curiosity", "Innovation"]
-}`}</code>
+                <pre className="text-zinc-300 overflow-x-auto leading-relaxed">
+                  <code>
+                    {`{\n`}
+                    {`  `}<span className="text-sky-400">"name"</span>: <span className="text-white">"Chun-Hao Yu (鮭魚)"</span>,{`\n`}
+                    {`  `}<span className="text-sky-400">"education"</span>: <span className="text-white">"MCU-CSIE"</span>,{`\n`}
+                    {`  `}<span className="text-sky-400">"skills"</span>: {`{\n`}
+                    {`    `}<span className="text-sky-400">"languages"</span>: [<span className="text-white">"C++"</span>, <span className="text-white">"Java"</span>, <span className="text-white">"Python"</span>, <span className="text-white">"PHP"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"ai_tech"</span>: [<span className="text-white">"RAG"</span>, <span className="text-white">"LangChain"</span>, <span className="text-white">"LLM API"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"domain"</span>: [<span className="text-white">"System Analysis"</span>, <span className="text-white">"SRS"</span>, <span className="text-white">"IOTA"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"tools"</span>: [<span className="text-white">"Git"</span>, <span className="text-white">"RESTful API"</span>]{`\n`}
+                    {`  }`},{`\n`}
+                    {`  `}<span className="text-sky-400">"mindset"</span>: [<span className="text-white">"Curiosity"</span>, <span className="text-white">"Innovation"</span>]{`\n`}
+                    {`}`}
+                  </code>
                 </pre>
               </div>
             </Reveal>
@@ -340,25 +341,25 @@ export default function App() {
               }
             ].map((project, idx) => (
               <Reveal key={idx} delay={0} type={idx % 2 === 0 ? "slide-left" : "slide-right"}>
-                <div 
+                <div
                   className={`group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer`}
-                  onMouseEnter={handleMouseEnter} 
+                  onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
                 >
                   {/* 專案圖片 (偶數左邊，奇數右邊) */}
                   <div className={`relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 aspect-[4/3] ${idx % 2 !== 0 ? 'md:order-2' : ''}`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 group-hover:scale-105 transition-transform duration-700 ease-out flex items-center justify-center mix-blend-overlay">
-                       <span className="text-zinc-700 font-mono text-sm tracking-widest">{project.img}</span>
+                      <span className="text-zinc-700 font-mono text-sm tracking-widest">{project.img}</span>
                     </div>
                   </div>
-                  
+
                   {/* 專案資訊 */}
                   <div className={`flex flex-col justify-center ${idx % 2 !== 0 ? 'md:order-1' : ''}`}>
                     <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">{project.year}</p>
                     <h3 className="text-3xl font-bold mb-6 group-hover:text-white transition-colors flex items-center gap-3">
-                      {project.title} 
+                      {project.title}
                       <span className="p-2 bg-zinc-800/0 rounded-full group-hover:bg-zinc-800 transition-colors">
-                         <ArrowUpRight className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" size={20} />
+                        <ArrowUpRight className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" size={20} />
                       </span>
                     </h3>
                     <p className="text-zinc-400 mb-8 leading-relaxed text-lg">
@@ -380,7 +381,7 @@ export default function App() {
 
         {/* --- 第三畫面: 技術筆記 (非必要，但能加分) --- */}
         <section id="blog" className="py-32 border-b border-zinc-900">
-           <Reveal type="slide-left">
+          <Reveal type="slide-left">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 flex items-center gap-3">
               <BookOpen className="text-zinc-500" /> 技術筆記
             </h2>
@@ -389,23 +390,30 @@ export default function App() {
             </p>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="flex overflow-x-auto gap-6 pb-8 pt-4 snap-x snap-mandatory -mx-6 px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[
+              { title: "從 0 到 1 的量化探索：在 WorldQuant 撰寫 Alpha 策略實戰", date: "May 12, 2026" },
               { title: "如何將複雜的系統架構轉化為易懂的交接文件", date: "Mar 12, 2024" },
               { title: "初探 LangChain：打造個人化的 RAG 本地知識庫", date: "Jan 05, 2024" },
               { title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？", date: "Nov 20, 2023" },
               { title: "從需求到實作：SRS 軟體需求規格書撰寫指南", date: "Sep 15, 2023" }
             ].map((post, idx) => (
-              <Reveal key={idx} delay={idx * 100} type="fade-up">
-                <a 
+              <Reveal key={idx} delay={idx * 100} type="fade-up" className="w-[85vw] md:w-[400px] shrink-0 snap-center h-full">
+                <a
                   href="#"
                   onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-                  className="group block bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-6 transition-all hover:-translate-y-1"
+                  className="group flex h-full min-h-[240px] flex-col justify-between bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-8 transition-all duration-300 hover:-translate-y-2 hover:bg-zinc-900/40 hover:shadow-2xl"
                 >
-                  <span className="text-xs font-mono text-zinc-500 mb-3 block">{post.date}</span>
-                  <h3 className="text-xl font-bold text-zinc-300 group-hover:text-white transition-colors">
-                    {post.title}
-                  </h3>
+                  <div>
+                    <span className="text-xs font-mono text-zinc-500 mb-4 block">{post.date}</span>
+                    <h3 className="text-2xl font-bold text-zinc-300 group-hover:text-white transition-colors leading-snug">
+                      {post.title}
+                    </h3>
+                  </div>
+                  <div className="mt-8 flex items-center gap-2 text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">
+                    <span>閱讀文章</span>
+                    <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </div>
                 </a>
               </Reveal>
             ))}
@@ -421,15 +429,15 @@ export default function App() {
             <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg">
               我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷與技能符合你們團隊的需求，歡迎隨時透過 Email 與我聯繫！
             </p>
-            
-            <a 
+
+            <a
               href="mailto:your.email@example.com"
               onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
               className="inline-flex items-center gap-3 bg-zinc-200 text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform"
             >
               <Mail size={20} /> 發送 Email
             </a>
-            
+
             <div className="mt-24 flex justify-center gap-6 relative z-10">
               <a href="#" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="p-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all">
                 <Github size={20} />

@@ -12,6 +12,9 @@ import {
   Sun,
   Moon,
   Code,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
 } from "lucide-react";
 
 // 性能優化：CSS Variables 追蹤滑鼠座標，避免 React 高頻重新渲染
@@ -84,9 +87,8 @@ const Reveal = ({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? visibleClass : initialClass
-      } ${className}`}
+      className={`transition-all duration-1000 ease-out ${isVisible ? visibleClass : initialClass
+        } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -104,6 +106,18 @@ export default function Home() {
   const [clickRipples, setClickRipples] = useState([]);
   const sidebarOpenTimerRef = useRef(null);
   const sidebarCloseTimerRef = useRef(null);
+  const blogScrollRef = useRef(null);
+
+  const scrollBlog = useCallback((direction) => {
+    if (blogScrollRef.current) {
+      const { current } = blogScrollRef;
+      const scrollAmount = window.innerWidth >= 768 ? current.clientWidth / 3 : current.clientWidth;
+      current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  }, []);
 
   // 初始化滑鼠追蹤（性能優化）
   useMouseTracking();
@@ -262,21 +276,19 @@ export default function Home() {
           openSidebar();
         }}
         onMouseLeave={handleMouseLeave}
-        className={`fixed top-6 left-6 z-40 p-3 bg-zinc-900/50 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all backdrop-blur-md ${
-          isSidebarOpen
+        className={`fixed top-6 left-6 z-40 p-3 bg-zinc-900/50 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all backdrop-blur-md ${isSidebarOpen
             ? "opacity-0 scale-90 pointer-events-none"
             : "opacity-100 hover:scale-110 shadow-lg"
-        }`}
+          }`}
       >
         <Menu size={20} />
       </button>
 
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-500 ${
-          isSidebarOpen
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-500 ${isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        }`}
+          }`}
         onClick={() => setIsSidebarOpen(false)}
         onMouseEnter={() => {
           if (sidebarCloseTimerRef.current) {
@@ -288,11 +300,10 @@ export default function Home() {
       <div
         onMouseEnter={openSidebar}
         onMouseLeave={closeSidebar}
-        className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 ${
-          isSidebarOpen
+        className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 ${isSidebarOpen
             ? "translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
             : "-translate-x-full"
-        }`}
+          }`}
       >
         <div className="flex justify-between items-center mb-16">
           <span className="font-mono text-sm text-zinc-500 border border-zinc-800 px-3 py-1 rounded-full tracking-widest">
@@ -345,21 +356,21 @@ export default function Home() {
         [data-theme="light"] .bg-zinc-900\\/50, 
         [data-theme="light"] .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7); }
         [data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
-        [data-theme="light"] .text-zinc-200 { color: #1e293b; }
-        [data-theme="light"] .text-zinc-300 { color: #334155; }
-        [data-theme="light"] .text-zinc-400 { color: #475569; }
-        [data-theme="light"] .text-zinc-500 { color: #64748b; }
-        [data-theme="light"] .text-zinc-600 { color: #94a3b8; }
-        [data-theme="light"] .text-zinc-700 { color: #cbd5e1; }
-        [data-theme="light"] .border-zinc-800 { border-color: #e2e8f0; }
-        [data-theme="light"] .border-zinc-800\\/50 { border-color: rgba(226, 232, 240, 0.5); }
-        [data-theme="light"] .border-zinc-900 { border-color: #cbd5e1; }
-        [data-theme="light"] .border-zinc-700 { border-color: #94a3b8; }
+        [data-theme="light"].text-zinc-200, [data-theme="light"] .text-zinc-200 { color: #020617; }
+        [data-theme="light"].text-zinc-300, [data-theme="light"] .text-zinc-300 { color: #0f172a; }
+        [data-theme="light"].text-zinc-400, [data-theme="light"] .text-zinc-400 { color: #1e293b; }
+        [data-theme="light"].text-zinc-500, [data-theme="light"] .text-zinc-500 { color: #334155; }
+        [data-theme="light"].text-zinc-600, [data-theme="light"] .text-zinc-600 { color: #475569; }
+        [data-theme="light"].text-zinc-700, [data-theme="light"] .text-zinc-700 { color: #64748b; }
+        [data-theme="light"] .border-zinc-800 { border-color: #cbd5e1; }
+        [data-theme="light"] .border-zinc-800\\/50 { border-color: rgba(203, 213, 225, 0.5); }
+        [data-theme="light"] .border-zinc-900 { border-color: #94a3b8; }
+        [data-theme="light"] .border-zinc-700 { border-color: #64748b; }
         [data-theme="light"] .bg-white { background-color: #0f172a; color: #ffffff; }
         [data-theme="light"] .text-black { color: #ffffff; }
         [data-theme="light"] .hover\\:text-white:hover,
-        [data-theme="light"] .group:hover .group-hover\\:text-white { color: #0f172a; }
-        [data-theme="light"] .group:hover .group-hover\\:text-zinc-200 { color: #1e293b; }
+        [data-theme="light"] .group:hover .group-hover\\:text-white { color: #020617; }
+        [data-theme="light"] .group:hover .group-hover\\:text-zinc-200 { color: #020617; }
         [data-theme="light"] .hover\\:bg-zinc-800:hover,
         [data-theme="light"] .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9; }
       `}</style>
@@ -383,23 +394,20 @@ export default function Home() {
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${
-            isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
-          }, transparent 40%)`,
+          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
+            }, transparent 40%)`,
         }}
       />
       <div
-        className={`pointer-events-none fixed z-50 rounded-full border border-white/50 mix-blend-difference transition-all duration-300 ease-out hidden md:flex items-center justify-center ${
-          isHovering ? "w-16 h-16 bg-white/20" : "w-8 h-8 bg-transparent"
-        }`}
+        className={`pointer-events-none fixed z-50 rounded-full border border-white/50 mix-blend-difference transition-all duration-300 ease-out hidden md:flex items-center justify-center ${isHovering ? "w-16 h-16 bg-white/20" : "w-8 h-8 bg-transparent"
+          }`}
         style={{
           transform: `translate(calc(var(--mouse-x, 50%) - ${isHovering ? 32 : 16}px), calc(var(--mouse-y, 50%) - ${isHovering ? 32 : 16}px))`,
         }}
       >
         <div
-          className={`w-1 h-1 bg-white rounded-full transition-opacity duration-300 ${
-            isHovering ? "opacity-100" : "opacity-0"
-          }`}
+          className={`w-1 h-1 bg-white rounded-full transition-opacity duration-300 ${isHovering ? "opacity-100" : "opacity-0"
+            }`}
         />
       </div>
 
@@ -458,25 +466,27 @@ export default function Home() {
             </div>
 
             <Reveal delay={400} type="scale" triggerOnMount={true}>
-              <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-xl p-6 font-mono text-sm shadow-2xl relative group w-full lg:max-w-md ml-auto">
-                <div className="flex gap-2 mb-4 border-b border-zinc-800 pb-4">
-                  <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/50" />
+              <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-6 font-mono text-sm shadow-2xl relative group w-full lg:max-w-md ml-auto">
+                <div className="flex gap-2 mb-4 border-b border-slate-800 pb-4">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
-                <div className="text-green-400 mb-2">➜ ~ cat profile.json</div>
-                <pre className="text-zinc-300 overflow-x-auto">
-                  <code>{`{
-  "name": "Chun-Hao Yu (鮭魚)",
-  "education": "MCU-CSIE",
-  "skills": {
-    "languages": ["C++", "Java", "Python", "PHP"],
-    "ai_tech": ["RAG", "LangChain", "LLM API"],
-    "domain": ["System Analysis", "SRS", "IOTA"],
-    "tools": ["Git", "RESTful API"]
-  },
-  "mindset": ["Curiosity", "Innovation"]
-}`}</code>
+                <div className="text-emerald-400 mb-2">➜ ~ cat profile.json</div>
+                <pre className="text-slate-300 overflow-x-auto leading-relaxed">
+                  <code>
+                    {`{\n`}
+                    {`  `}<span className="text-sky-400">"name"</span>: <span className="text-white">"Chun-Hao Yu (鮭魚)"</span>,{`\n`}
+                    {`  `}<span className="text-sky-400">"education"</span>: <span className="text-white">"MCU-CSIE"</span>,{`\n`}
+                    {`  `}<span className="text-sky-400">"skills"</span>: {`{\n`}
+                    {`    `}<span className="text-sky-400">"languages"</span>: [<span className="text-white">"C++"</span>, <span className="text-white">"Java"</span>, <span className="text-white">"Python"</span>, <span className="text-white">"PHP"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"ai_tech"</span>: [<span className="text-white">"RAG"</span>, <span className="text-white">"LangChain"</span>, <span className="text-white">"LLM API"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"domain"</span>: [<span className="text-white">"System Analysis"</span>, <span className="text-white">"SRS"</span>, <span className="text-white">"IOTA"</span>],{`\n`}
+                    {`    `}<span className="text-sky-400">"tools"</span>: [<span className="text-white">"Git"</span>, <span className="text-white">"RESTful API"</span>]{`\n`}
+                    {`  }`},{`\n`}
+                    {`  `}<span className="text-sky-400">"mindset"</span>: [<span className="text-white">"Curiosity"</span>, <span className="text-white">"Innovation"</span>]{`\n`}
+                    {`}`}
+                  </code>
                 </pre>
               </div>
             </Reveal>
@@ -515,139 +525,199 @@ export default function Home() {
               const CardTag = project.link ? "a" : "div";
 
               return (
-              <Reveal
-                key={idx}
-                delay={0}
-                type={idx % 2 === 0 ? "slide-left" : "slide-right"}
-              >
-                <CardTag
-                  {...(project.link
-                    ? {
+                <Reveal
+                  key={idx}
+                  delay={0}
+                  type={idx % 2 === 0 ? "slide-left" : "slide-right"}
+                >
+                  <CardTag
+                    {...(project.link
+                      ? {
                         href: project.link,
                         target: "_blank",
                         rel: "noopener noreferrer",
                       }
-                    : {})}
-                  className="group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 aspect-[4/3] ${
-                      idx % 2 !== 0 ? "md:order-2" : ""
-                    }`}
+                      : {})}
+                    className="group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 group-hover:scale-105 transition-transform duration-700 ease-out flex items-center justify-center mix-blend-overlay">
-                      <span className="text-zinc-700 font-mono text-sm tracking-widest">
-                        {project.img}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`flex flex-col justify-center ${
-                      idx % 2 !== 0 ? "md:order-1" : ""
-                    }`}
-                  >
-                    <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">
-                      {project.year}
-                    </p>
-                    <h3 className="text-3xl font-bold mb-6 group-hover:text-white transition-colors flex items-center gap-3">
-                      {project.title}
-                      <span className="p-2 bg-zinc-800/0 rounded-full group-hover:bg-zinc-800 transition-colors">
-                        <ArrowUpRight
-                          className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300"
-                          size={20}
-                        />
-                      </span>
-                    </h3>
-                    <p className="text-zinc-400 mb-8 leading-relaxed text-lg">
-                      {project.desc}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono"
-                        >
-                          {tag}
+                    <div
+                      className={`relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 aspect-[4/3] ${idx % 2 !== 0 ? "md:order-2" : ""
+                        }`}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 group-hover:scale-105 transition-transform duration-700 ease-out flex items-center justify-center mix-blend-overlay">
+                        <span className="text-zinc-700 font-mono text-sm tracking-widest">
+                          {project.img}
                         </span>
-                      ))}
+                      </div>
                     </div>
-                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
-                      <span>{project.linkLabel || "查看連結"}</span>
-                      <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+
+                    <div
+                      className={`flex flex-col justify-center ${idx % 2 !== 0 ? "md:order-1" : ""
+                        }`}
+                    >
+                      <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">
+                        {project.year}
+                      </p>
+                      <h3 className="text-3xl font-bold mb-6 group-hover:text-white transition-colors flex items-center gap-3">
+                        {project.title}
+                        <span className="p-2 bg-zinc-800/0 rounded-full group-hover:bg-zinc-800 transition-colors">
+                          <ArrowUpRight
+                            className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300"
+                            size={20}
+                          />
+                        </span>
+                      </h3>
+                      <p className="text-zinc-400 mb-8 leading-relaxed text-lg">
+                        {project.desc}
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {project.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-xs px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
+                        <span>{project.linkLabel || "查看連結"}</span>
+                        <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                      </div>
                     </div>
-                  </div>
-                </CardTag>
-              </Reveal>
+                  </CardTag>
+                </Reveal>
               );
             })}
           </div>
         </section>
 
-        <section id="blog" className="py-32 border-b border-zinc-900">
+        <section id="blog" className="py-32 border-b border-zinc-900 relative">
           <Reveal type="slide-left">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 flex items-center gap-3">
-              <BookOpen className="text-zinc-500" /> 技術筆記
-            </h2>
-            <p className="text-zinc-400 mb-12 max-w-2xl">
-              除了寫程式，我也會把踩坑過程和學習心得記下來。這不只幫我整理思路，也希望能讓遇到同樣問題的人少走一點彎路。
-            </p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 flex items-center gap-3">
+                  <BookOpen className="text-zinc-500" /> 技術筆記
+                </h2>
+                <p className="text-zinc-400 max-w-2xl">
+                  除了寫程式，我也會把踩坑過程和學習心得記下來。這不只幫我整理思路，也希望能讓遇到同樣問題的人少走一點彎路。
+                </p>
+              </div>
+              
+              {/* 電腦端方向鍵 */}
+              <div className="hidden md:flex gap-3">
+                <button 
+                  onClick={() => scrollBlog('left')}
+                  className="p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button 
+                  onClick={() => scrollBlog('right')}
+                  className="p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                title: "如何將複雜的系統架構轉化為易懂的交接文件",
-                date: "Apr 11, 2026",
-                excerpt: "整理我怎麼把系統設計、圖表與交接內容整理成團隊一看就能接手的文件。",
-                href: "/blog/architecture-documentation",
-              },
-              {
-                title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
-                date: "Apr 05, 2026",
-                excerpt: "從需求、索引到問答流程，一步步把 RAG 做成可以實際操作的網頁服務。",
-                href: "/blog/langchain-rag",
-              },
-              {
-                title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
-                date: "Apr 08, 2026",
-                excerpt: "記錄在智慧家居專題裡，為什麼最後選擇 IOTA 的 Tangle，而不是傳統區塊鏈。",
-                href: "/blog/smart-home-security",
-              },
-              {
-                title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
-                date: "Apr 02, 2026",
-                excerpt: "把需求寫清楚、寫完整，讓開發團隊和利害關係人有一致的理解。",
-                href: "/blog/srs-guide",
-              },
-            ].map((post, idx) => (
-              <Reveal key={idx} delay={idx * 100} type="fade-up">
-                <a
-                  href={post.href}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                  className="group flex h-full min-h-[240px] flex-col justify-between bg-zinc-900/20 border border-zinc-800/50 hover:border-zinc-600 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-900/35"
+          <div className="relative -mx-6 px-6">
+            <div 
+              ref={blogScrollRef}
+              className="flex overflow-x-auto gap-6 pb-12 pt-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
+              {[
+                {
+                  title: "從 0 到 1 的量化探索：在 WorldQuant 撰寫 Alpha 策略實戰",
+                  date: "May 12, 2026",
+                  excerpt: "紀錄我在 WorldQuant 平台上挖掘 Alpha 的過程，包含量化因子的思考邏輯與公式撰寫技巧。",
+                  href: "/blog/worldquant-alpha",
+                  image: "/covers/worldquant-alpha.png",
+                },
+                {
+                  title: "如何將複雜的系統架構轉化為易懂的交接文件",
+                  date: "Apr 11, 2026",
+                  excerpt: "整理我怎麼把系統設計、圖表與交接內容整理成團隊一看就能接手的文件。",
+                  href: "/blog/architecture-documentation",
+                  image: "/covers/architecture.png",
+                },
+                {
+                  title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
+                  date: "Apr 05, 2026",
+                  excerpt: "從需求、索引到問答流程，一步步把 RAG 做成可以實際操作的網頁服務。",
+                  href: "/blog/langchain-rag",
+                  image: "/covers/langchain.png",
+                },
+                {
+                  title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
+                  date: "Apr 08, 2026",
+                  excerpt: "記錄在智慧家居專題裡，為什麼最後選擇 IOTA 的 Tangle，而不是傳統區塊鏈。",
+                  href: "/blog/smart-home-security",
+                  image: "/covers/smart-home.png",
+                },
+                {
+                  title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
+                  date: "Apr 02, 2026",
+                  excerpt: "把需求寫清楚、寫完整，讓開發團隊和利害關係人有一致的理解。",
+                  href: "/blog/srs-guide",
+                  image: "/covers/srs.png",
+                },
+              ].map((post, idx) => (
+                <Reveal 
+                  key={idx} 
+                  delay={idx * 100} 
+                  type="fade-up" 
+                  /* 一次 Focus 在三個內容：每個卡片寬度設為 33.33% 減去 gap */
+                  className="w-full md:w-[calc(33.3333%-16px)] shrink-0 snap-start h-full"
                 >
-                  <div>
-                    <span className="text-xs font-mono text-zinc-500 mb-4 block">
-                      {post.date}
-                    </span>
-                    <h3 className="text-xl font-bold text-zinc-300 group-hover:text-white transition-colors leading-snug">
-                      {post.title}
-                    </h3>
-                    <p className="mt-4 text-sm leading-relaxed text-zinc-400 line-clamp-3">
-                      {post.excerpt}
-                    </p>
-                  </div>
-                  <div className="mt-6 flex items-center gap-2 text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">
-                    <span>閱讀文章</span>
-                    <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                  </div>
-                </a>
-              </Reveal>
-            ))}
+                  <a
+                    href={post.href}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    className="group/card flex flex-col h-full bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-600 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
+                  >
+                    {/* 照片放置區 */}
+                    <div className="aspect-[16/9] w-full bg-zinc-950 relative overflow-hidden border-b border-zinc-800/50">
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent z-10 pointer-events-none" />
+                      {post.image ? (
+                        <img 
+                          src={post.image} 
+                          alt={post.title} 
+                          className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" 
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-700 group-hover/card:scale-105 transition-transform duration-700 ease-out bg-zinc-900">
+                          <ImageIcon size={32} className="opacity-30 mb-2" />
+                          <span className="font-mono text-xs tracking-wider opacity-50">IMAGE</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 內文區 */}
+                    <div className="p-6 flex flex-col flex-grow justify-between bg-zinc-900/20">
+                      <div>
+                        <span className="text-xs font-mono text-zinc-500 mb-3 block">
+                          {post.date}
+                        </span>
+                        <h3 className="text-lg font-bold text-zinc-300 group-hover/card:text-white transition-colors leading-snug line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="mt-3 text-sm leading-relaxed text-zinc-400 line-clamp-3">
+                          {post.excerpt}
+                        </p>
+                      </div>
+                      <div className="mt-6 flex items-center gap-2 text-xs font-medium text-zinc-400 group-hover/card:text-white transition-colors">
+                        <span>閱讀文章</span>
+                        <ArrowUpRight size={14} className="transition-transform duration-300 group-hover/card:translate-x-1 group-hover/card:-translate-y-1" />
+                      </div>
+                    </div>
+                  </a>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -667,7 +737,7 @@ export default function Home() {
               rel="noopener noreferrer"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className="inline-flex items-center gap-3 bg-zinc-200 text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform"
+              className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg"
             >
               <Mail size={20} /> 發送 Email
             </a>
