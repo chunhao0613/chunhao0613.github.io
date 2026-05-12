@@ -98,7 +98,6 @@ const Reveal = ({
 
 export default function Home() {
   const [isHovering, setIsHovering] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [time, setTime] = useState("");
@@ -107,6 +106,7 @@ export default function Home() {
   const sidebarOpenTimerRef = useRef(null);
   const sidebarCloseTimerRef = useRef(null);
   const blogScrollRef = useRef(null);
+  const scrollProgressRef = useRef(null);
 
   const scrollBlog = useCallback((direction) => {
     if (blogScrollRef.current) {
@@ -153,18 +153,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    let rafId = null;
     const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollTop;
-      const windowHeight =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      const scroll = windowHeight > 0 ? totalScroll / windowHeight : 0;
-      setScrollProgress(scroll);
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        const totalScroll = document.documentElement.scrollTop;
+        const windowHeight =
+          document.documentElement.scrollHeight -
+          document.documentElement.clientHeight;
+        const scroll = windowHeight > 0 ? totalScroll / windowHeight : 0;
+        
+        if (scrollProgressRef.current) {
+          scrollProgressRef.current.style.width = `${scroll * 100}%`;
+        }
+        rafId = null;
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -388,8 +397,8 @@ export default function Home() {
         />
       ))}
       <div
-        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-100 z-50 transition-all duration-150 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-        style={{ width: `${scrollProgress * 100}%` }}
+        ref={scrollProgressRef}
+        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-100 z-50 transition-all duration-150 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)] w-0"
       />
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
