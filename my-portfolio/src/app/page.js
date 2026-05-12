@@ -434,15 +434,15 @@ export default function Home() {
                 </p>
               </Reveal>
               <Reveal delay={100} type="fade-up" triggerOnMount={true}>
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight mb-4">
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight mb-4 font-handwriting">
                   Hi, 我是
                   <br />
                   余駿豪{" "}
-                  <span className="text-3xl md:text-5xl text-zinc-500 font-medium tracking-normal">
+                  <span className="text-3xl md:text-5xl text-zinc-500 font-medium tracking-normal font-handwriting">
                     / 鮭魚
                   </span>
                 </h1>
-                <h2 className="text-2xl md:text-3xl text-zinc-400 font-medium mb-8">
+                <h2 className="text-2xl md:text-3xl text-zinc-400 font-medium mb-8 font-handwriting tracking-wide">
                   軟體開發者 / MCU-CSIE
                 </h2>
               </Reveal>
@@ -732,10 +732,10 @@ export default function Home() {
 
         <section id="contact" className="py-32 text-center relative">
           <Reveal type="scale">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8 relative z-10 font-handwriting">
               準備好聊聊了嗎？
             </h2>
-            <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg">
+            <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg font-handwriting tracking-wide">
               我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷和技能符合團隊需求，歡迎直接用
               Email 找我聊聊。
             </p>
@@ -762,7 +762,10 @@ export default function Home() {
                 className="inline-flex items-center gap-2 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all font-medium"
                 title="前往 GitHub 個人頁面"
               >
-                <GitBranch size={20} />
+                <svg width="20" height="20" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+                  <path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                  <path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
                 <span>GitHub</span>
               </a>
             </div>
