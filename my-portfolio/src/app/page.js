@@ -294,7 +294,7 @@ export default function Home() {
       </button>
 
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-500 ${isSidebarOpen
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-500 will-change-opacity ${isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
           }`}
@@ -309,7 +309,7 @@ export default function Home() {
       <div
         onMouseEnter={openSidebar}
         onMouseLeave={closeSidebar}
-        className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 ${isSidebarOpen
+        className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 will-change-transform ${isSidebarOpen
             ? "translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
             : "-translate-x-full"
           }`}
