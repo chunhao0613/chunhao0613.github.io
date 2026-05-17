@@ -2,83 +2,41 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 
-// Effect 3: Premium Ambient Glow Background
+// Effect 3: Premium Ambient Glow Background (GPU-Accelerated CSS Orbs)
 export const AmbientBackground = ({ isDarkMode }) => {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let animationFrameId;
-    let width, height;
-
-    const orbs = [];
-    const numOrbs = 4; // 減少 orbs 數量以降低計算開銷
-
-    const resize = () => {
-      // 效能優化：降低畫布解析度 (0.4x) 以進行極限性能優化。
-      // 由於背景光暈本質是模糊的，利用瀏覽器雙線性插補拉伸後效果更柔和，同時像素填充率降低 84%，解決卡頓問題。
-      const scale = 0.4;
-      width = Math.floor(window.innerWidth * scale);
-      height = Math.floor(window.innerHeight * scale);
-      canvas.width = width;
-      canvas.height = height;
-    };
-    window.addEventListener("resize", resize);
-    resize();
-
-    for (let i = 0; i < numOrbs; i++) {
-      orbs.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.3, // 配合較小的解析度縮小速度
-        vy: (Math.random() - 0.5) * 0.3,
-        radius: Math.random() * 120 + 80, // 相對解析度縮小半徑
-        hue: isDarkMode ? Math.random() * 60 + 190 : Math.random() * 60 + 200, 
-      });
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, width, height);
-      ctx.globalCompositeOperation = "screen";
-
-      for (let orb of orbs) {
-        orb.x += orb.vx;
-        orb.y += orb.vy;
-
-        if (orb.x < -orb.radius) orb.x = width + orb.radius;
-        if (orb.x > width + orb.radius) orb.x = -orb.radius;
-        if (orb.y < -orb.radius) orb.y = height + orb.radius;
-        if (orb.y > height + orb.radius) orb.y = -orb.radius;
-
-        const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius);
-        const opacity = isDarkMode ? 0.04 : 0.02;
-        gradient.addColorStop(0, `hsla(${orb.hue}, 80%, 60%, ${opacity})`);
-        gradient.addColorStop(1, "transparent");
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isDarkMode]);
-
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 w-full h-full"
-    />
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+      {/* Glow Orb 1 - Top Left */}
+      <div 
+        className={`absolute w-[45vw] h-[45vw] rounded-full filter blur-[120px] mix-blend-screen opacity-[0.22] animate-ambient-glow-1 ${
+          isDarkMode ? "bg-blue-600/20" : "bg-sky-400/25"
+        }`}
+        style={{
+          top: "-15%",
+          left: "-15%",
+        }}
+      />
+      {/* Glow Orb 2 - Bottom Right */}
+      <div 
+        className={`absolute w-[50vw] h-[50vw] rounded-full filter blur-[140px] mix-blend-screen opacity-[0.18] animate-ambient-glow-2 ${
+          isDarkMode ? "bg-purple-600/15" : "bg-purple-400/20"
+        }`}
+        style={{
+          bottom: "-25%",
+          right: "-15%",
+        }}
+      />
+      {/* Glow Orb 3 - Center Right */}
+      <div 
+        className={`absolute w-[35vw] h-[35vw] rounded-full filter blur-[100px] mix-blend-screen opacity-[0.2] animate-ambient-glow-3 ${
+          isDarkMode ? "bg-emerald-600/15" : "bg-emerald-400/20"
+        }`}
+        style={{
+          top: "35%",
+          left: "45%",
+        }}
+      />
+    </div>
   );
 };
 
