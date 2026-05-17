@@ -110,6 +110,16 @@ export default function Home() {
   const sidebarCloseTimerRef = useRef(null);
   const blogScrollRef = useRef(null);
   const scrollProgressRef = useRef(null);
+  const [menuRadius, setMenuRadius] = useState(120);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setMenuRadius(window.innerWidth < 768 ? 85 : 120);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const scrollBlog = useCallback((direction) => {
     if (blogScrollRef.current) {
@@ -281,7 +291,7 @@ export default function Home() {
       />
 
       <div className="fixed top-6 right-6 z-50 flex items-center gap-3 font-mono text-[10px] sm:text-xs text-zinc-500 pointer-events-none">
-        <div className="flex items-center gap-3 bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 backdrop-blur-md pointer-events-auto shadow-lg">
+        <div className="hidden sm:flex items-center gap-3 bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 backdrop-blur-md pointer-events-auto shadow-lg">
           <Activity size={14} className="text-green-500 animate-pulse" />
           <span className="text-green-400 w-12">FPS: {fps}</span>
           <span className="w-[1px] h-3 bg-zinc-700"></span>
@@ -321,7 +331,7 @@ export default function Home() {
             { name: "技術筆記", href: "#blog", icon: <BookOpen size={20} />, angle: 60 },
             { name: "聯絡資訊", href: "#contact", icon: <Mail size={20} />, angle: 90 },
           ].map((item, idx) => {
-            const radius = 120;
+            const radius = menuRadius;
             const rad = (item.angle * Math.PI) / 180;
             const x = Math.cos(rad) * radius;
             const y = Math.sin(rad) * radius;

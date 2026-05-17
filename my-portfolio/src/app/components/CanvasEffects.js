@@ -14,11 +14,14 @@ export const AmbientBackground = ({ isDarkMode }) => {
     let width, height;
 
     const orbs = [];
-    const numOrbs = 6;
+    const numOrbs = 4; // 減少 orbs 數量以降低計算開銷
 
     const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      // 效能優化：降低畫布解析度 (0.4x) 以進行極限性能優化。
+      // 由於背景光暈本質是模糊的，利用瀏覽器雙線性插補拉伸後效果更柔和，同時像素填充率降低 84%，解決卡頓問題。
+      const scale = 0.4;
+      width = Math.floor(window.innerWidth * scale);
+      height = Math.floor(window.innerHeight * scale);
       canvas.width = width;
       canvas.height = height;
     };
@@ -29,9 +32,9 @@ export const AmbientBackground = ({ isDarkMode }) => {
       orbs.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-        radius: Math.random() * 300 + 200,
+        vx: (Math.random() - 0.5) * 0.3, // 配合較小的解析度縮小速度
+        vy: (Math.random() - 0.5) * 0.3,
+        radius: Math.random() * 120 + 80, // 相對解析度縮小半徑
         hue: isDarkMode ? Math.random() * 60 + 190 : Math.random() * 60 + 200, 
       });
     }
@@ -74,7 +77,7 @@ export const AmbientBackground = ({ isDarkMode }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
+      className="fixed inset-0 pointer-events-none z-0 w-full h-full"
     />
   );
 };
@@ -260,17 +263,23 @@ export const SalmonEasterEgg = ({ children }) => {
   };
 
   useEffect(() => {
+    // 效能優化：如果沒有魚，且沒有任何粒子在跑，就完全不啟用 RAF 物理更新循環
+    if (!isPopped && particles.length === 0) return;
+
     let rafId;
     const update = () => {
-      setParticles((prev) => 
-        prev.map((p) => ({
+      let activeParticles = false;
+      setParticles((prev) => {
+        const next = prev.map((p) => ({
           ...p,
           x: p.x + p.vx,
           y: p.y + p.vy,
           vy: p.vy + 0.35,
           life: p.life - 0.025
-        })).filter((p) => p.life > 0)
-      );
+        })).filter((p) => p.life > 0);
+        if (next.length > 0) activeParticles = true;
+        return next;
+      });
 
       if (isPopped && !isDragging) {
         const p = fishPos.current;
@@ -298,11 +307,17 @@ export const SalmonEasterEgg = ({ children }) => {
         const fishEl = document.getElementById("easter-egg-fish");
         if (fishEl) { fishEl.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.vx * 2.5}deg)`; }
       }
-      rafId = requestAnimationFrame(update);
+
+      // 只有當有魚或有粒子時，才繼續調度下一影格，否則優雅停止
+      if (isPopped || activeParticles) {
+        rafId = requestAnimationFrame(update);
+      }
     };
     rafId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(rafId);
-  }, [isPopped, isDragging]);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isPopped, isDragging, particles.length === 0]);
 
   const handleMouseDown = (e) => {
     if (!isPopped) return;
