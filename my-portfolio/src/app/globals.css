@@ -33,3 +33,20 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* View Transitions API 樣式：實現圓形擴散切換效果 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 讓新主題層永遠在最上方，以便進行擴散動畫 */
+::view-transition-new(root) {
+  z-index: 9999;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import {
   ArrowUpRight,
   GitBranch,
@@ -14,8 +15,10 @@ import {
   Code,
   ChevronLeft,
   ChevronRight,
+  User,
   Image as ImageIcon,
 } from "lucide-react";
+import { AmbientBackground, WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
 
 // 性能優化：CSS Variables 追蹤滑鼠座標，避免 React 高頻重新渲染
 const useMouseTracking = () => {
@@ -204,41 +207,26 @@ export default function Home() {
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
 
-  const openSidebar = useCallback(() => {
-    if (sidebarCloseTimerRef.current) {
-      clearTimeout(sidebarCloseTimerRef.current);
-      sidebarCloseTimerRef.current = null;
-    }
+  useEffect(() => {
+    const handleProximity = (e) => {
+      if (window.innerWidth < 768) return;
+      const centerX = 56; 
+      const centerY = 56;
+      const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+      
+      const triggerDist = 100; 
+      const leaveDist = triggerDist * 2.2; // 2.2倍，確保能覆蓋徑向選單的範圍
 
-    if (isSidebarOpen) {
-      return;
-    }
+      if (dist < triggerDist && !isSidebarOpen) {
+        setIsSidebarOpen(true);
+      } else if (dist > leaveDist && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
 
-    if (sidebarOpenTimerRef.current) {
-      clearTimeout(sidebarOpenTimerRef.current);
-    }
-
-    sidebarOpenTimerRef.current = setTimeout(() => {
-      setIsSidebarOpen(true);
-      sidebarOpenTimerRef.current = null;
-    }, 80);
+    window.addEventListener("mousemove", handleProximity);
+    return () => window.removeEventListener("mousemove", handleProximity);
   }, [isSidebarOpen]);
-
-  const closeSidebar = useCallback(() => {
-    if (sidebarOpenTimerRef.current) {
-      clearTimeout(sidebarOpenTimerRef.current);
-      sidebarOpenTimerRef.current = null;
-    }
-
-    if (sidebarCloseTimerRef.current) {
-      clearTimeout(sidebarCloseTimerRef.current);
-    }
-
-    sidebarCloseTimerRef.current = setTimeout(() => {
-      setIsSidebarOpen(false);
-      sidebarCloseTimerRef.current = null;
-    }, 120);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -247,6 +235,40 @@ export default function Home() {
     };
   }, []);
 
+  const toggleTheme = (e) => {
+    if (!document.startViewTransition) {
+      setIsDarkMode(!isDarkMode);
+      return;
+    }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setIsDarkMode((prev) => !prev);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 700,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
+
   return (
     <div
       data-theme={isDarkMode ? "dark" : "light"}
@@ -254,8 +276,8 @@ export default function Home() {
     >
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"
-        onMouseEnter={openSidebar}
-        onMouseLeave={closeSidebar}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       />
 
       <div className="fixed top-6 right-6 z-50 flex items-center gap-3 font-mono text-[10px] sm:text-xs text-zinc-500 pointer-events-none">
@@ -267,7 +289,7 @@ export default function Home() {
         </div>
         <button
           aria-label="切換白天/黑夜模式"
-          onClick={() => setIsDarkMode(!isDarkMode)}
+          onClick={toggleTheme}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className="p-2.5 bg-zinc-900/50 border border-zinc-800/50 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all backdrop-blur-md hover:scale-110 pointer-events-auto shadow-lg"
@@ -277,78 +299,71 @@ export default function Home() {
         </button>
       </div>
 
-      <button
-        aria-label="開啟選單"
-        onClick={() => setIsSidebarOpen(true)}
-        onMouseEnter={() => {
-          handleMouseEnter();
-          openSidebar();
-        }}
-        onMouseLeave={handleMouseLeave}
-        className={`fixed top-6 left-6 z-40 p-3 bg-zinc-900/50 border border-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all backdrop-blur-md ${isSidebarOpen
-            ? "opacity-0 scale-90 pointer-events-none"
-            : "opacity-100 hover:scale-110 shadow-lg"
+      {/* 現代化環繞式選單 (Radial Menu) */}
+      <div className="fixed top-6 left-6 z-50">
+        <button
+          aria-label={isSidebarOpen ? "關閉選單" : "開啟選單"}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className={`p-4 bg-zinc-900/80 border border-zinc-800 rounded-full text-zinc-400 hover:text-white transition-all backdrop-blur-xl shadow-2xl relative z-50 ${
+            isSidebarOpen ? "rotate-180 scale-110" : "hover:scale-110"
           }`}
-      >
-        <Menu size={20} />
-      </button>
+        >
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
 
-      <div
-        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-500 will-change-opacity ${isSidebarOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-          }`}
-        onClick={() => setIsSidebarOpen(false)}
-        onMouseEnter={() => {
-          if (sidebarCloseTimerRef.current) {
-            clearTimeout(sidebarCloseTimerRef.current);
-            sidebarCloseTimerRef.current = null;
-          }
-        }}
-      />
-      <div
-        onMouseEnter={openSidebar}
-        onMouseLeave={closeSidebar}
-        className={`fixed top-0 left-0 h-full w-full sm:w-80 bg-zinc-950 border-r border-zinc-800 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex flex-col p-8 will-change-transform ${isSidebarOpen
-            ? "translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
-            : "-translate-x-full"
-          }`}
-      >
-        <div className="flex justify-between items-center mb-16">
-          <span className="font-mono text-sm text-zinc-500 border border-zinc-800 px-3 py-1 rounded-full tracking-widest">
-            MENU
-          </span>
-          <button
-            aria-label="關閉選單"
-            onClick={() => setIsSidebarOpen(false)}
-            className="p-2 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-full transition-all"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <nav className="flex flex-col gap-8">
+        {/* 選單項目的環繞佈局 */}
+        <div className="absolute top-0 left-0 w-0 h-0">
           {[
-            { name: "關於我", href: "#about", id: "01" },
-            { name: "個人專案", href: "#projects", id: "02" },
-            { name: "技術筆記", href: "#blog", id: "03" },
-            { name: "聯絡資訊", href: "#contact", id: "04" },
-          ].map((item) => (
-            <a
-              key={item.id}
-              href={item.href}
-              onClick={() => setIsSidebarOpen(false)}
-              className="group flex items-center gap-4 text-xl md:text-2xl font-bold text-zinc-400 hover:text-white transition-all"
-            >
-              <span className="font-mono text-sm text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                {item.id}
-              </span>
-              <span className="group-hover:translate-x-2 transition-transform duration-300">
-                {item.name}
-              </span>
-            </a>
-          ))}
-        </nav>
+            { name: "關於我", href: "#about", icon: <User size={20} />, angle: 0 },
+            { name: "個人專案", href: "#projects", icon: <Code size={20} />, angle: 30 },
+            { name: "技術筆記", href: "#blog", icon: <BookOpen size={20} />, angle: 60 },
+            { name: "聯絡資訊", href: "#contact", icon: <Mail size={20} />, angle: 90 },
+          ].map((item, idx) => {
+            const radius = 120;
+            const rad = (item.angle * Math.PI) / 180;
+            const x = Math.cos(rad) * radius;
+            const y = Math.sin(rad) * radius;
+
+            return (
+              <a
+                key={idx}
+                href={item.href}
+                onClick={() => setIsSidebarOpen(false)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                className={`absolute flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900/90 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all duration-500 backdrop-blur-lg shadow-xl group ${
+                  isSidebarOpen
+                    ? "opacity-100 scale-100 translate-x-0 translate-y-0"
+                    : "opacity-0 scale-0 pointer-events-none"
+                }`}
+                style={{
+                  transform: isSidebarOpen
+                    ? `translate(${x}px, ${y}px)`
+                    : "translate(0, 0)",
+                  transitionDelay: isSidebarOpen ? `${idx * 50}ms` : "0ms",
+                }}
+              >
+                <div className="relative">
+                  {item.icon}
+                  <span className="absolute left-full ml-4 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {item.name}
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
+
+      {/* 背景遮罩 (當選單開啟時) */}
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-500 ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
       <style>{`
         @keyframes ripple-click {
@@ -362,6 +377,8 @@ export default function Home() {
         [data-theme="light"].bg-zinc-950,
         [data-theme="light"] .bg-zinc-950 { background-color: #f8fafc; }
         [data-theme="light"] .bg-zinc-900 { background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        [data-theme="light"] .bg-zinc-900\\/90 { background-color: rgba(255, 255, 255, 0.95); }
+        [data-theme="light"] .bg-zinc-900\\/80 { background-color: rgba(255, 255, 255, 0.85); }
         [data-theme="light"] .bg-zinc-900\\/50, 
         [data-theme="light"] .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7); }
         [data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
@@ -382,6 +399,7 @@ export default function Home() {
         [data-theme="light"] .group:hover .group-hover\\:text-zinc-200 { color: #020617; }
         [data-theme="light"] .hover\\:bg-zinc-800:hover,
         [data-theme="light"] .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9; }
+        [data-theme="light"] .animate-ripple-click { border-color: rgba(113, 113, 122, 0.35); }
       `}</style>
 
       {clickRipples.map((ripple) => (
@@ -400,6 +418,7 @@ export default function Home() {
         ref={scrollProgressRef}
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-100 z-50 transition-all duration-150 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)] w-0"
       />
+      <AmbientBackground isDarkMode={isDarkMode} />
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
         style={{
@@ -439,7 +458,7 @@ export default function Home() {
                   <br />
                   余駿豪{" "}
                   <span className="text-3xl md:text-5xl text-zinc-500 font-medium tracking-normal font-handwriting">
-                    / 鮭魚
+                    / <SalmonEasterEgg>鮭魚</SalmonEasterEgg>
                   </span>
                 </h1>
                 <h2 className="text-2xl md:text-3xl text-zinc-400 font-medium mb-8 font-handwriting tracking-wide">
@@ -475,7 +494,7 @@ export default function Home() {
             </div>
 
             <Reveal delay={400} type="scale" triggerOnMount={true}>
-              <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-6 font-mono text-sm shadow-2xl relative group w-full lg:max-w-md ml-auto">
+              <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-6 md:p-8 font-mono text-sm shadow-2xl relative group w-full lg:max-w-2xl ml-auto">
                 <div className="flex gap-2 mb-4 border-b border-slate-800 pb-4">
                   <div className="w-3 h-3 rounded-full bg-red-500/80" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -485,15 +504,15 @@ export default function Home() {
                 <pre className="text-slate-300 overflow-x-auto leading-relaxed">
                   <code>
                     {`{\n`}
-                    {`  `}<span className="text-sky-400">"name"</span>: <span className="text-white">"Chun-Hao Yu (鮭魚)"</span>,{`\n`}
-                    {`  `}<span className="text-sky-400">"education"</span>: <span className="text-white">"MCU-CSIE"</span>,{`\n`}
+                    {`  `}<span className="text-sky-400">"name"</span>: <WaveText text='"Chun-Hao Yu (鮭魚)"' className="text-white" />,{`\n`}
+                    {`  `}<span className="text-sky-400">"education"</span>: <WaveText text='"MCU-CSIE"' className="text-white" />,{`\n`}
                     {`  `}<span className="text-sky-400">"skills"</span>: {`{\n`}
-                    {`    `}<span className="text-sky-400">"languages"</span>: [<span className="text-white">"C++"</span>, <span className="text-white">"Java"</span>, <span className="text-white">"Python"</span>, <span className="text-white">"PHP"</span>],{`\n`}
-                    {`    `}<span className="text-sky-400">"ai_tech"</span>: [<span className="text-white">"RAG"</span>, <span className="text-white">"LangChain"</span>, <span className="text-white">"LLM API"</span>],{`\n`}
-                    {`    `}<span className="text-sky-400">"domain"</span>: [<span className="text-white">"System Analysis"</span>, <span className="text-white">"SRS"</span>, <span className="text-white">"IOTA"</span>],{`\n`}
-                    {`    `}<span className="text-sky-400">"tools"</span>: [<span className="text-white">"Git"</span>, <span className="text-white">"RESTful API"</span>]{`\n`}
+                    {`    `}<span className="text-sky-400">"languages"</span>: [<WaveText text='"C++"' className="text-white" />, <WaveText text='"Java"' className="text-white" />, <WaveText text='"Python"' className="text-white" />, <WaveText text='"PHP"' className="text-white" />],{`\n`}
+                    {`    `}<span className="text-sky-400">"ai_tech"</span>: [<WaveText text='"RAG"' className="text-white" />, <WaveText text='"LangChain"' className="text-white" />, <WaveText text='"LLM API"' className="text-white" />],{`\n`}
+                    {`    `}<span className="text-sky-400">"domain"</span>: [<WaveText text='"System Analysis"' className="text-white" />, <WaveText text='"SRS"' className="text-white" />, <WaveText text='"IOTA"' className="text-white" />],{`\n`}
+                    {`    `}<span className="text-sky-400">"tools"</span>: [<WaveText text='"Git"' className="text-white" />, <WaveText text='"RESTful API"' className="text-white" />]{`\n`}
                     {`  }`},{`\n`}
-                    {`  `}<span className="text-sky-400">"mindset"</span>: [<span className="text-white">"Curiosity"</span>, <span className="text-white">"Innovation"</span>]{`\n`}
+                    {`  `}<span className="text-sky-400">"mindset"</span>: [<WaveText text='"Curiosity"' className="text-white" />, <WaveText text='"Innovation"' className="text-white" />]{`\n`}
                     {`}`}
                   </code>
                 </pre>
@@ -506,9 +525,9 @@ export default function Home() {
           <Reveal>
             <div className="flex items-center gap-3 mb-20">
               <Code className="text-zinc-500" />
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <DeconstructTitle className="text-3xl md:text-4xl font-bold tracking-tight">
                 個人專案
-              </h2>
+              </DeconstructTitle>
             </div>
           </Reveal>
 
@@ -607,9 +626,9 @@ export default function Home() {
           <Reveal type="slide-left">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 flex items-center gap-3">
-                  <BookOpen className="text-zinc-500" /> 技術筆記
-                </h2>
+                <div className="text-3xl md:text-4xl font-bold tracking-tight mb-4 flex items-center gap-3">
+                  <BookOpen className="text-zinc-500" /> <DeconstructTitle>技術筆記</DeconstructTitle>
+                </div>
                 <p className="text-zinc-400 max-w-2xl">
                   除了寫程式，我也會把踩坑過程和學習心得記下來。這不只幫我整理思路，也希望能讓遇到同樣問題的人少走一點彎路。
                 </p>
@@ -682,7 +701,7 @@ export default function Home() {
                   /* 一次 Focus 在三個內容：每個卡片寬度設為 33.33% 減去 gap */
                   className="w-full md:w-[calc(33.3333%-16px)] shrink-0 snap-start h-full"
                 >
-                  <a
+                  <Link
                     href={post.href}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
@@ -696,6 +715,10 @@ export default function Home() {
                           src={post.image} 
                           alt={post.title} 
                           className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" 
+                          onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; // 優雅降級：使用藝術抽象圖作為備份
+                          }}
                         />
                       ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-700 group-hover/card:scale-105 transition-transform duration-700 ease-out bg-zinc-900">
@@ -723,7 +746,7 @@ export default function Home() {
                         <ArrowUpRight size={14} className="transition-transform duration-300 group-hover/card:translate-x-1 group-hover/card:-translate-y-1" />
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </Reveal>
               ))}
             </div>
@@ -732,9 +755,9 @@ export default function Home() {
 
         <section id="contact" className="py-32 text-center relative">
           <Reveal type="scale">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8 relative z-10 font-handwriting">
+            <DeconstructTitle className="text-4xl md:text-5xl font-bold tracking-tighter mb-8 relative z-10 font-handwriting justify-center">
               準備好聊聊了嗎？
-            </h2>
+            </DeconstructTitle>
             <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg font-handwriting tracking-wide">
               我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷和技能符合團隊需求，歡迎直接用
               Email 找我聊聊。
