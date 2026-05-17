@@ -20,26 +20,7 @@ import {
 } from "lucide-react";
 import { AmbientBackground, WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
 
-// 性能優化：CSS Variables 追蹤滑鼠座標，避免 React 高頻重新渲染
-const useMouseTracking = () => {
-  const rafRef = useRef(null);
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
-        document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
-      });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-};
 
 const useScrollReveal = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -110,6 +91,9 @@ export default function Home() {
   const sidebarCloseTimerRef = useRef(null);
   const blogScrollRef = useRef(null);
   const scrollProgressRef = useRef(null);
+  const cursorRef = useRef(null);
+  const glowRef = useRef(null);
+  const mouseCoords = useRef({ x: 0, y: 0 });
   const [menuRadius, setMenuRadius] = useState(120);
 
   useEffect(() => {
@@ -120,6 +104,41 @@ export default function Home() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    let rafId = null;
+
+    const handleMouseMove = (e) => {
+      mouseCoords.current = { x: e.clientX, y: e.clientY };
+
+      if (rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        const { x, y } = mouseCoords.current;
+
+        // 性能極限優化：直接操縱特定 DOM Ref 的 Style 樣式，
+        // 徹底避開在 documentElement 上設定全域 CSS Variables 造成瀏覽器對全網頁進行 synchronous style recalculation 的嚴重效能災難！
+        if (glowRef.current) {
+          glowRef.current.style.background = `radial-gradient(600px circle at ${x}px ${y}px, ${
+            isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
+          }, transparent 40%)`;
+        }
+
+        if (cursorRef.current) {
+          const size = isHovering ? 32 : 16;
+          cursorRef.current.style.transform = `translate(${x - size}px, ${y - size}px)`;
+        }
+
+        rafId = null;
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isDarkMode, isHovering]);
 
   const scrollBlog = useCallback((direction) => {
     if (blogScrollRef.current) {
@@ -132,8 +151,7 @@ export default function Home() {
     }
   }, []);
 
-  // 初始化滑鼠追蹤（性能優化）
-  useMouseTracking();
+  // 性能優化已移至 Ref 直操 useEffect 中
 
   useEffect(() => {
     const updateTime = () => {
@@ -430,17 +448,15 @@ export default function Home() {
       />
       <AmbientBackground isDarkMode={isDarkMode} />
       <div
+        ref={glowRef}
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
-            }, transparent 40%)`,
-        }}
       />
       <div
-        className={`pointer-events-none fixed z-50 rounded-full border border-white/50 mix-blend-difference transition-all duration-300 ease-out hidden md:flex items-center justify-center ${isHovering ? "w-16 h-16 bg-white/20" : "w-8 h-8 bg-transparent"
+        ref={cursorRef}
+        className={`pointer-events-none fixed z-50 rounded-full border border-white/50 mix-blend-difference transition-[width,height,background-color] duration-300 ease-out hidden md:flex items-center justify-center ${isHovering ? "w-16 h-16 bg-white/20" : "w-8 h-8 bg-transparent"
           }`}
         style={{
-          transform: `translate(calc(var(--mouse-x, 50%) - ${isHovering ? 32 : 16}px), calc(var(--mouse-y, 50%) - ${isHovering ? 32 : 16}px))`,
+          transform: "translate(-100px, -100px)", // 初始置於視窗外
         }}
       >
         <div
