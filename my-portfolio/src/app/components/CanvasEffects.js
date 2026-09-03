@@ -151,8 +151,12 @@ export const SalmonEasterEgg = ({ children }) => {
     setIsMounted(true);
   }, []);
 
+  // 收集「魚會撞到」的元素。原本的選擇器包含 span，但 WaveText 和
+  // DeconstructTitle 會把每個字拆成獨立 span，首頁因此有 200+ 個 span，
+  // 每次 scroll 都對它們逐一 getBoundingClientRect 會造成大量強制 layout。
+  // 改成只取區塊級元素，數量降到數十個。
   const updateSolidRects = useCallback(() => {
-    const elements = document.querySelectorAll('h1, h2, h3, p, a, span:not(.pointer-events-none):not(#easter-egg-fish)');
+    const elements = document.querySelectorAll("h1, h2, h3, p, a");
     const rects = [];
     elements.forEach((el) => {
       if (el.contains(spanRef.current)) return;
@@ -165,14 +169,25 @@ export const SalmonEasterEgg = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (isPopped) {
-      updateSolidRects();
-      window.addEventListener('scroll', updateSolidRects);
-      window.addEventListener('resize', updateSolidRects);
-    }
+    if (!isPopped) return;
+
+    // scroll 期間把量測收斂到一個影格一次，避免連續強制 layout
+    let rafId = null;
+    const schedule = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        updateSolidRects();
+      });
+    };
+
+    updateSolidRects();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
     return () => {
-      window.removeEventListener('scroll', updateSolidRects);
-      window.removeEventListener('resize', updateSolidRects);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
     };
   }, [isPopped, updateSolidRects]);
 

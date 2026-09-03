@@ -84,17 +84,18 @@ const FPSStatusBar = () => {
   const [time, setTime] = useState("");
   const [fps, setFps] = useState(0);
 
+  // 這個元件是 `hidden sm:flex`，手機上根本不顯示；而且分頁切到背景時
+  // 也沒人在看。兩種情況都完全停掉計時器與 rAF，不做無謂的耗電。
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString("zh-TW", { hour12: false }));
-    };
-    updateTime();
-    const timeInterval = setInterval(updateTime, 1000);
-
+    const wideEnough = window.matchMedia("(min-width: 640px)");
+    let timeInterval = null;
+    let animationFrameId = null;
     let frameCount = 0;
-    let lastTime = performance.now();
-    let animationFrameId;
+    let lastTime = 0;
+
+    const updateTime = () => {
+      setTime(new Date().toLocaleTimeString("zh-TW", { hour12: false }));
+    };
 
     const calculateFps = () => {
       const now = performance.now();
@@ -106,11 +107,36 @@ const FPSStatusBar = () => {
       }
       animationFrameId = requestAnimationFrame(calculateFps);
     };
-    calculateFps();
+
+    const stop = () => {
+      if (timeInterval !== null) clearInterval(timeInterval);
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+      timeInterval = null;
+      animationFrameId = null;
+    };
+
+    const sync = () => {
+      const shouldRun = wideEnough.matches && !document.hidden;
+      if (shouldRun === (animationFrameId !== null)) return;
+      if (!shouldRun) {
+        stop();
+        return;
+      }
+      updateTime();
+      timeInterval = setInterval(updateTime, 1000);
+      frameCount = 0;
+      lastTime = performance.now();
+      animationFrameId = requestAnimationFrame(calculateFps);
+    };
+
+    sync();
+    wideEnough.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
 
     return () => {
-      clearInterval(timeInterval);
-      cancelAnimationFrame(animationFrameId);
+      stop();
+      wideEnough.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
     };
   }, []);
 
@@ -167,7 +193,6 @@ const MENU_ITEMS = [
 ];
 
 export default function Home() {
-  const [isHovering, setIsHovering] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const sidebarOpenTimerRef = useRef(null);
@@ -237,29 +262,48 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isSidebarOpen]);
 
-  const handleMouseEnter = useCallback(() => setIsHovering(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovering(false), []);
+  // 用 ref 讀取開關狀態，effect 才不會每次開關選單就重新註冊 listener；
+  // 實際判定收斂到 rAF，一個影格最多算一次。
+  const isSidebarOpenRef = useRef(isSidebarOpen);
+  useEffect(() => {
+    isSidebarOpenRef.current = isSidebarOpen;
+  }, [isSidebarOpen]);
 
   useEffect(() => {
-    const handleProximity = (e) => {
+    let rafId = null;
+    let lastX = 0;
+    let lastY = 0;
+
+    const evaluate = () => {
+      rafId = null;
       if (window.innerWidth < 768) return;
-      const centerX = 56; 
+
+      const centerX = 56;
       const centerY = 56;
-      const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-      
-      const triggerDist = 100; 
+      const dist = Math.hypot(lastX - centerX, lastY - centerY);
+
+      const triggerDist = 100;
       const leaveDist = triggerDist * 2.2; // 2.2倍，確保能覆蓋徑向選單的範圍
 
-      if (dist < triggerDist && !isSidebarOpen) {
+      if (dist < triggerDist && !isSidebarOpenRef.current) {
         setIsSidebarOpen(true);
-      } else if (dist > leaveDist && isSidebarOpen) {
+      } else if (dist > leaveDist && isSidebarOpenRef.current) {
         setIsSidebarOpen(false);
       }
     };
 
-    window.addEventListener("mousemove", handleProximity);
-    return () => window.removeEventListener("mousemove", handleProximity);
-  }, [isSidebarOpen]);
+    const handleProximity = (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (rafId === null) rafId = requestAnimationFrame(evaluate);
+    };
+
+    window.addEventListener("mousemove", handleProximity, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleProximity);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -309,8 +353,6 @@ export default function Home() {
     >
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
       />
 
       <div className="fixed top-6 right-6 z-50 flex items-center gap-3 font-mono text-[10px] sm:text-xs text-zinc-500 pointer-events-none">
@@ -318,8 +360,6 @@ export default function Home() {
         <button
           aria-label="切換白天/黑夜模式"
           onClick={toggleTheme}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           className="p-2.5 bg-zinc-900/50 border border-zinc-800/50 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors duration-300 hover:scale-110 pointer-events-auto shadow-lg"
           title="切換白天/黑夜模式"
         >
@@ -332,8 +372,6 @@ export default function Home() {
         <button
           aria-label={isSidebarOpen ? "關閉選單" : "開啟選單"}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           className={`p-4 bg-zinc-900/80 border border-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors transition-transform duration-300 shadow-2xl relative z-50 ${
               isSidebarOpen ? "rotate-180 scale-110" : "hover:scale-110"
             }`}
@@ -354,8 +392,6 @@ export default function Home() {
                 key={idx}
                 href={item.href}
                 onClick={() => setIsSidebarOpen(false)}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
                 className="absolute flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900/90 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-opacity transition-transform duration-300 backdrop-blur-none shadow-xl"
                 style={{
                   transform: `translate(${x}px, ${y}px)`,
@@ -452,17 +488,12 @@ export default function Home() {
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-100 z-50 transition-all duration-150 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)] w-0"
       />
 
-      <MainContent
-        handleMouseEnter={handleMouseEnter}
-        handleMouseLeave={handleMouseLeave}
-        scrollBlog={scrollBlog}
-        blogScrollRef={blogScrollRef}
-      />
+      <MainContent scrollBlog={scrollBlog} blogScrollRef={blogScrollRef} />
     </div>
   );
 }
 
-const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog, blogScrollRef }) => {
+const MainContent = React.memo(({ scrollBlog, blogScrollRef }) => {
   return (
     <main className="relative z-10 max-w-6xl mx-auto px-6">
       <section
@@ -500,16 +531,12 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
               <div className="flex gap-4 items-center">
                 <a
                   href="#projects"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
                   className="bg-white text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2"
                 >
                   查看個人專案 <ArrowUpRight size={18} />
                 </a>
                 <a
                   href="#contact"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
                   className="text-zinc-400 hover:text-white px-6 py-3 transition-colors font-medium"
                 >
                   聯絡我
@@ -592,8 +619,6 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
                     }
                     : {})}
                   className="group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
                 >
                   <div
                     className={`relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 aspect-[4/3] ${idx % 2 !== 0 ? "md:order-2" : ""
@@ -727,8 +752,6 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
               >
                 <Link
                   href={post.href}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
                   className="group/card flex flex-col h-full bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-600 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
                 >
                   <div className="aspect-[16/9] w-full bg-zinc-950 relative overflow-hidden border-b border-zinc-800/50">
@@ -793,8 +816,6 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
             href="https://mail.google.com/mail/?view=cm&fs=1&to=chunhao0613@gmail.com"
             target="_blank"
             rel="noopener noreferrer"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
             className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg"
           >
             <Mail size={20} /> 發送 Email
@@ -806,8 +827,6 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub 個人頁面"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
               className="inline-flex items-center gap-2 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all font-medium"
               title="前往 GitHub 個人頁面"
             >
