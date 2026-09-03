@@ -20,13 +20,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "余駿豪 (鮭魚) | 軟體工程師 Portfolio",
+  metadataBase: new URL("https://chunhao0613.github.io"),
+  title: {
+    default: "余駿豪 (鮭魚) | 軟體工程師 Portfolio",
+    template: "%s | 余駿豪 (鮭魚)",
+  },
   description: "軟體開發者余駿豪的個人作品集。擅長系統架構、AI RAG 應用、IoT 與區塊鏈技術。",
-  canonical: "https://chunhao0613.github.io",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "余駿豪 (鮭魚) | 軟體工程師 Portfolio",
     description: "軟體開發者余駿豪的個人作品集。",
-    url: "https://chunhao0613.github.io",
+    url: "/",
     siteName: "Chun-Hao Yu Portfolio",
     type: "website",
   },
