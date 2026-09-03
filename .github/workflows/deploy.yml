@@ -43,11 +43,34 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('my-portfolio/package-lock.json') }}-
 
+      # 只有字元集變動時才需要重新下載 7.4MB 的原始字型，
+      # 快取住可讓大多數建置完全跳過網路存取。
+      - name: Restore source font cache
+        uses: actions/cache@v4
+        with:
+          path: my-portfolio/.cache/fonts
+          key: ${{ runner.os }}-srcfont-${{ hashFiles('my-portfolio/scripts/subset-font.mjs') }}
+
       - name: Install dependencies
         run: npm ci
 
+      # 字型 subset 與圖片轉檔的唯一產生來源 —— 產物不進版控，
+      # 每次建置都由這裡重新產出，所以在 GitHub 網頁上改文章或
+      # 上傳圖片都不需要任何本機環境。
+      # （prebuild 也會觸發，這裡獨立跑是為了讓 log 好定位。）
+      - name: Prepare assets (font subset + image conversion)
+        run: npm run prepare:assets
+
       - name: Build static files
         run: npm run build
+
+      - name: Report bundle size
+        run: |
+          echo "### 產出大小" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          du -sh out >> "$GITHUB_STEP_SUMMARY"
+          du -sh out/_next/static out/covers 2>/dev/null >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
