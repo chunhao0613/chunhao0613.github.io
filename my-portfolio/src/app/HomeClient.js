@@ -18,7 +18,7 @@ import {
   User,
   Image as ImageIcon,
 } from "lucide-react";
-import { AmbientBackground, WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
+import { WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
 
 
 
@@ -454,32 +454,6 @@ export function HomeClient({ posts }) {
         [data-theme="light"] .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9; }
         [data-theme="light"] .animate-ripple-click { border-color: rgba(113, 113, 122, 0.35); }
 
-        @keyframes ambient-glow-1 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.95); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes ambient-glow-2 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-40px, 60px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes ambient-glow-3 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(-50px, -20px) scale(1.05); }
-          66% { transform: translate(40px, 30px) scale(0.95); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-ambient-glow-1 {
-          animation: ambient-glow-1 25s ease-in-out infinite;
-        }
-        .animate-ambient-glow-2 {
-          animation: ambient-glow-2 30s ease-in-out infinite;
-        }
-        .animate-ambient-glow-3 {
-          animation: ambient-glow-3 20s ease-in-out infinite;
-        }
       `}</style>
 
       <ClickRippleContainer />
