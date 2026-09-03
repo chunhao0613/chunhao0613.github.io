@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -312,44 +313,76 @@ export function HomeClient({ posts }) {
     };
   }, []);
 
-  const toggleTheme = (e) => {
-    if (!document.startViewTransition) {
-      setIsDarkMode(!isDarkMode);
+  const toggleTheme = useCallback((e) => {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!document.startViewTransition || calm) {
+      setIsDarkMode((prev) => !prev);
       return;
     }
 
-    const x = e.clientX;
-    const y = e.clientY;
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
+    // 圓心取按鈕本身的中心，而不是滑鼠座標：用鍵盤觸發時 clientX/clientY
+    // 會是 0，波動會從畫面左上角冒出來，而不是使用者按的地方。
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    // 圓心與半徑一律用百分比表示，不用 px。
+    //
+    // ::view-transition-new(root) 的盒子並不保證等於 CSS 像素的視窗大小
+    // （在 devicePixelRatio > 1 的螢幕上會是裝置像素尺寸），用 px 指定會
+    // 讓圓心偏掉、半徑也不夠長 —— 這正是先前波動跑到畫面中央、而且
+    // 掃不到邊緣就結束的原因。百分比一律相對於偽元素自身的盒子解析，
+    // 因此不管那個盒子實際是多少像素都會落在正確位置。
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const xPct = (x / vw) * 100;
+    const yPct = (y / vh) * 100;
+
+    // circle() 的百分比半徑是相對於 sqrt(w² + h²) / sqrt(2)。
+    // 兩者等比例縮放，所以用視窗尺寸算出的百分比在任何盒子大小都成立。
+    const maxDist = Math.max(
+      Math.hypot(x, y),
+      Math.hypot(vw - x, y),
+      Math.hypot(x, vh - y),
+      Math.hypot(vw - x, vh - y)
     );
+    const refLen = Math.hypot(vw, vh) / Math.SQRT2;
+    const endPct = (maxDist / refLen) * 100 * 1.05; // 多 5% 避免邊角留縫
 
     const transition = document.startViewTransition(() => {
-      setIsDarkMode((prev) => !prev);
+      // 關鍵：startViewTransition 會在 callback 回傳後立刻拍下「新狀態」快照，
+      // 但 React 的 setState 是非同步的 —— 不強制同步 flush 的話，拍到的
+      // 新快照與舊快照完全相同，波動掃過去不會有任何變化，等 transition
+      // 結束 React 才 re-render，於是整頁一次翻過去。
+      flushSync(() => setIsDarkMode((prev) => !prev));
     });
 
-    transition.ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 700,
-          easing: "ease-in-out",
-          pseudoElement: "::view-transition-new(root)",
-        }
-      );
-    });
-  };
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0% at ${xPct}% ${yPct}%)`,
+              `circle(${endPct}% at ${xPct}% ${yPct}%)`,
+            ],
+          },
+          {
+            duration: 700,
+            easing: "ease-in-out",
+            pseudoElement: "::view-transition-new(root)",
+          }
+        );
+      })
+      // transition 被瀏覽器略過時（分頁在背景、連續快速點擊）ready 會 reject。
+      // 主題本身已經切換完成，這裡只是沒有動畫，不需要處理，但必須接住，
+      // 否則會產生 unhandled rejection。
+      .catch(() => {});
+  }, []);
 
   return (
     <div
       data-theme={isDarkMode ? "dark" : "light"}
-      className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden transition-colors duration-500"
+      className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden"
     >
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"

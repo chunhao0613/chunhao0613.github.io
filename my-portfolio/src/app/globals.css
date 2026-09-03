@@ -1,6 +1,17 @@
 @import "tailwindcss";
 
+/* 站台是深色為主，因此 body 預設就是深色 —— 不再跟隨作業系統的
+   prefers-color-scheme。原本的寫法會讓「系統淺色 + 站台深色」時
+   body 是白的，只是剛好被上層的 bg-zinc-950 蓋住；一旦上層沒蓋滿
+   （view transition 交接、捲動回彈）就會露出白底閃一下。 */
 :root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* 用 :has() 讓 body 跟著 app 的主題走。純 CSS 因此與 DOM 同步生效，
+   不會有 effect 慢一拍造成的顏色不同步。 */
+:root:has([data-theme="light"]) {
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -13,20 +24,18 @@
   --font-handwriting: var(--font-nani), cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
-/* View Transitions API 樣式：實現圓形擴散切換效果 */
+/* View Transitions API：圓形擴散切換。
+   舊快照整段維持不動，新快照由 JS 用 clip-path 從按鈕處擴散開來。
+
+   三個偽元素都要停用預設動畫 —— group 也在內。少了 group 這一條，
+   瀏覽器仍會跑它自己的 250ms 群組動畫，與我們的 700ms 擴散不同步。 */
+::view-transition-group(root),
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
