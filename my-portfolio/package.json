@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run prepare:assets && next dev",
+    "prebuild": "npm run prepare:assets",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prepare:assets": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
@@ -23,6 +25,8 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "sharp": "^0.35.4",
+    "subset-font": "^2.7.0",
     "tailwindcss": "^4"
   }
 }

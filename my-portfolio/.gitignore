@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 資產管線的下載快取（原始字型 7.4MB，不進版控）
+/.cache/
+
+# 資產管線的產物 —— 由 scripts/prepare-assets.mjs 在建置時產生，
+# CI 每次建置都會重新產出，因此不進版控。
+# 原始檔在 assets/images/，字型來源見 scripts/subset-font.mjs。
+# 注意：src/fonts/OFL.txt 需保留在版控中（OFL 要求散布時附授權）。
+/src/fonts/*.woff2
+/src/fonts/.subset-manifest.json
+/assets/.image-manifest.json
+/public/*.webp
+/public/*.jpg
+/public/covers/
