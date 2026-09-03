@@ -1,13 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'nanifont';
-  src: url(https://cdn.jsdelivr.net/gh/max32002/nanifont@1.036/webfont/NaniFont-Regular.woff2) format("woff2"), 
-       url(https://cdn.jsdelivr.net/gh/max32002/nanifont@1.036/webfont/NaniFont-Regular.woff) format("woff");
-  font-weight: 100 900;
-  font-display: swap;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -16,9 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'nanifont', var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-nani), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-handwriting: 'nanifont', cursive;
+  --font-handwriting: var(--font-nani), cursive;
 }
 
 @media (prefers-color-scheme: dark) {

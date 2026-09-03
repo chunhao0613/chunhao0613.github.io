@@ -1,9 +1,17 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// 由 scripts/subset-font.mjs 產生（僅含本站用到的字元）。
+// 原字型 NaniFont 採 SIL OFL 1.1，授權見 src/fonts/OFL.txt。
+const nanifont = localFont({
+  src: "../fonts/NaniFont-subset.woff2",
+  variable: "--font-nani",
+  display: "swap",
+  weight: "100 900",
+  // 保留 adjustFontFallback 預設值，Next 會自動產生度量對齊的備援字型，
+  // 減少 swap 時的版面跳動
+  fallback: ["system-ui", "sans-serif"],
 });
 
 const geistMono = Geist_Mono({
@@ -42,7 +50,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="zh-TW"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${nanifont.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <script
