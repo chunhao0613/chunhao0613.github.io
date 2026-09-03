@@ -14,25 +14,25 @@ export default function BlogPost() {
       id: 1,
       title: "Bronze Medal",
       desc: "WorldQuant 銅牌認證。",
-      filename: "bronze_medal.png"
+      filename: "bronze_medal.webp"
     },
     {
       id: 2,
       title: "Silver Medal",
       desc: "WorldQuant 銀牌認證。",
-      filename: "silver_medal.png"
+      filename: "silver_medal.webp"
     },
     {
       id: 3,
       title: "Gold Medal",
       desc: "WorldQuant 金牌認證。",
-      filename: "gold_medal.png"
+      filename: "gold_medal.webp"
     },
     {
       id: 4,
       title: "Consultant",
       desc: "獲邀成為 WorldQuant 研究顧問的官方證明。",
-      filename: "consultant_certificate.png"
+      filename: "consultant_certificate.webp"
     }
   ];
 

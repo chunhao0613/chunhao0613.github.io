@@ -688,35 +688,35 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
                 date: "May 12, 2026",
                 excerpt: "紀錄我在 WorldQuant 平台上挖掘 Alpha 的過程，包含量化因子的思考邏輯與公式撰寫技巧。",
                 href: "/blog/worldquant-alpha",
-                image: "/covers/worldquant-alpha.png",
+                image: "/covers/worldquant-alpha.webp",
               },
               {
                 title: "如何將複雜的系統架構轉化為易懂的交接文件",
                 date: "Apr 11, 2026",
                 excerpt: "整理我怎麼把系統設計、圖表與交接內容整理成團隊一看就能接手的文件。",
                 href: "/blog/architecture-documentation",
-                image: "/covers/architecture.png",
+                image: "/covers/architecture.webp",
               },
               {
                 title: "初探 LangChain：打造個人化的 RAG 本地知識庫",
                 date: "Apr 05, 2026",
                 excerpt: "從需求、索引到問答流程，一步步把 RAG 做成可以實際操作的網頁服務。",
                 href: "/blog/langchain-rag",
-                image: "/covers/langchain.png",
+                image: "/covers/langchain.webp",
               },
               {
                 title: "物聯網安全：為什麼我們在智慧家居專題選擇 IOTA？",
                 date: "Apr 08, 2026",
                 excerpt: "記錄在智慧家居專題裡，為什麼最後選擇 IOTA 的 Tangle，而不是傳統區塊鏈。",
                 href: "/blog/smart-home-security",
-                image: "/covers/smart-home.png",
+                image: "/covers/smart-home.webp",
               },
               {
                 title: "從需求到實作：SRS 軟體需求規格書撰寫指南",
                 date: "Apr 02, 2026",
                 excerpt: "把需求寫清楚、寫完整，讓開發團隊和利害關係人有一致的理解。",
                 href: "/blog/srs-guide",
-                image: "/covers/srs.png",
+                image: "/covers/srs.webp",
               },
             ].map((post, idx) => (
               <Reveal 
@@ -734,13 +734,17 @@ const MainContent = React.memo(({ handleMouseEnter, handleMouseLeave, scrollBlog
                   <div className="aspect-[16/9] w-full bg-zinc-950 relative overflow-hidden border-b border-zinc-800/50">
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent z-10 pointer-events-none" />
                     {post.image ? (
-                      <img 
-                        src={post.image} 
-                        alt={post.title} 
-                        className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" 
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        width={800}
+                        height={450}
+                        // 前三張在首屏內，其餘延後載入
+                        loading={idx < 3 ? "eager" : "lazy"}
+                        decoding="async"
+                        className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out"
                         onError={(e) => {
-                          e.target.onerror = null; 
-                          e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop";
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                     ) : (
