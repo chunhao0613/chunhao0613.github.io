@@ -590,6 +590,89 @@ const MainContent = React.memo(({ posts, scrollBlog, blogScrollRef }) => {
           </div>
         </Reveal>
 
+        <Reveal type="fade-up">
+          <article className="mb-24 rounded-3xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
+            <div className="grid lg:grid-cols-[1.1fr_1fr]">
+              <Link href="/blog/novacut-ai-workflow" className="group relative block bg-zinc-950 aspect-[16/10] lg:aspect-auto overflow-hidden border-b lg:border-b-0 lg:border-r border-zinc-800">
+                <img
+                  src="/covers/novacut.webp"
+                  alt="NovaCut 瀏覽器影片剪輯器畫面"
+                  width={1200}
+                  height={750}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 w-full h-full object-cover object-left-top group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                />
+              </Link>
+              <div className="p-8 md:p-10 flex flex-col">
+                <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">
+                  精選專案 · Oct – Nov 2026
+                </p>
+                <h3 className="text-3xl font-bold mb-4">NovaCut：瀏覽器本機影片剪輯器</h3>
+                <p className="text-zinc-400 leading-relaxed mb-6">
+                  與 AI 協作，兩週內從零做出全本機、免費、免安裝的剪輯網站。我負責定方向、排優先順序、做技術取捨與驗收；AI 負責研究、實作與測試。每個功能都用有標準答案的測試量測，不接受「應該可以」。
+                </p>
+                <dl className="grid grid-cols-2 gap-4 mb-6">
+                  {[
+                    ["26 款", "競品功能矩陣"],
+                    ["~7,400 行", "30 個模組"],
+                    ["18×", "AI 去背匯出加速"],
+                    ["0.17 ms", "人聲處理對齊誤差"],
+                  ].map(([value, label]) => (
+                    <div key={label} className="border-l-2 border-zinc-700 pl-3">
+                      <dt className="text-xl font-bold text-zinc-100 font-mono">{value}</dt>
+                      <dd className="text-xs text-zinc-500 mt-1">{label}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {["WebCodecs", "WebGL2", "Web Audio", "transformers.js", "GitHub Actions"].map((tag) => (
+                    <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-auto flex flex-wrap gap-3">
+                  <Link href="/blog/novacut-ai-workflow" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 text-sm font-medium hover:bg-white transition-colors">
+                    閱讀案例：問題怎麼被發現與解決 <ArrowUpRight size={16} />
+                  </Link>
+                  <a href="https://chunhao0613.github.io/novacut/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors">
+                    線上試用 <ArrowUpRight size={16} />
+                  </a>
+                  <a href="https://github.com/chunhao0613/novacut" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors">
+                    <GitBranch size={16} /> 原始碼
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </Reveal>
+
+        <Reveal type="fade-up">
+          <div className="mb-32">
+            <h3 className="text-2xl font-bold mb-3">我和 AI 的協作方式</h3>
+            <p className="text-zinc-400 mb-10 max-w-3xl leading-relaxed">
+              AI 寫程式很快，但也會很有自信地寫錯。我的角色是把模糊的目標變成可驗證的範圍，並設計出有標準答案的測試，讓結果自己證明對錯。
+            </p>
+            <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                ["定義限制", "先決定不能妥協的原則（本機處理、免費、無浮水印），之後每個技術選擇都拿它來判斷。"],
+                ["先研究再動手", "讓 AI 平行調查開源專案與 26 款競品，產出功能矩陣，我依缺口決定優先順序。"],
+                ["小批交付", "每批只做 3–5 個功能，做完就驗收、更新文件，降低一次改壞的範圍。"],
+                ["用數據驗收", "合成 440 Hz 純音、120 BPM 鼓聲、已知軌跡的方塊當標準答案；甚至用 Whisper 把 AI 語音辨識回文字比對。"],
+                ["追到根因", "不接受「已知限制」。變速變調就自己實作 WSOLA；匯出全黑就讀回影格查像素，找到 1×1 圖層的真正原因。"],
+                ["回到使用者", "定期以新使用者身分走一遍流程，把「不好用」變成具體、可排序的問題清單。"],
+              ].map(([title, desc], i) => (
+                <li key={title} className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30">
+                  <span className="font-mono text-xs text-zinc-500">{String(i + 1).padStart(2, "0")}</span>
+                  <h4 className="text-lg font-bold mt-2 mb-2 text-zinc-100">{title}</h4>
+                  <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </Reveal>
+
         <div className="flex flex-col gap-32">
           {[
             {
