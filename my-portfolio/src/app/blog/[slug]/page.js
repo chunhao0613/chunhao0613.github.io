@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 
 import { getAllPosts, getPost } from "@/lib/posts";
 import { BackButton } from "./BackButton";
+import SwarmBuild from "../../components/SwarmBuild";
 import { CertificateCarousel } from "../../components/post/CertificateCarousel";
 import {
   AwardBanner,
@@ -106,11 +107,13 @@ export default async function BlogPost({ params }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans pt-20 pb-20">
+      {/* 「AI 建造」輕量版：只建造標題區與封面，內文直接顯示，不讓讀者等 */}
+      <SwarmBuild mode="light" />
       <div className={`${container} mx-auto px-6`}>
         <BackButton />
 
         <article className="max-w-none">
-          <header className="mb-12 border-b border-zinc-800 pb-8">
+          <header data-swarm="" className="mb-12 border-b border-zinc-800 pb-8">
             <time className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
               {post.displayDate}
             </time>
@@ -121,6 +124,22 @@ export default async function BlogPost({ params }) {
               </p>
             ) : null}
           </header>
+
+          {post.image ? (
+            <div data-swarm="" className="mb-12">
+              <figure className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 aspect-[16/9]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.image}
+                  alt={`${post.title} 封面`}
+                  width={1200}
+                  height={675}
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
+              </figure>
+            </div>
+          ) : null}
 
           <AwardBanner award={post.award} />
 

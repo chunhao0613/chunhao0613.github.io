@@ -1,6 +1,7 @@
 import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { swarmBootScript } from "@/lib/swarm";
 
 // 由 scripts/subset-font.mjs 產生（僅含本站用到的字元）。
 // 原字型 NaniFont 採 SIL OFL 1.1，授權見 src/fonts/OFL.txt。
@@ -38,10 +39,6 @@ export const metadata = {
   },
 };
 
-// 在第一次繪製前就決定是否播放開場建構動畫（條件與 SwarmBuild.js 相同），
-// 避免首頁內容先閃一下再被藏起來。3.5 秒後無論如何都移除，
-// 就算 JS 沒載入成功，內容也不會一直藏著。
-const swarmBoot = `try{var d=document.documentElement;if(location.pathname==="/"&&innerWidth>=768&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&sessionStorage.getItem("swarm-build-done")!=="1"){d.classList.add("swarm-intro");setTimeout(function(){d.classList.remove("swarm-intro")},3500)}}catch(e){}`;
 
 export default function RootLayout({ children }) {
   const jsonLd = {
@@ -65,7 +62,8 @@ export default function RootLayout({ children }) {
       className={`${nanifont.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: swarmBoot }} />
+        {/* 「AI 建造」效果：第一次繪製前先藏好待建造的區塊，說明見 src/lib/swarm.js */}
+        <script dangerouslySetInnerHTML={{ __html: swarmBootScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
