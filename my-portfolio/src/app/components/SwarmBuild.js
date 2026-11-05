@@ -178,16 +178,9 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     const themeRoot = document.querySelector("[data-theme]");
 
     // ================================================================ 任務收集
-    // 橫向捲動容器裡的區塊（文章卡片列）不套用：畫面外的卡片被裁掉，永遠不會「進入畫面」
-    const inHScroller = (el) => {
-      for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
-        const ox = getComputedStyle(n).overflowX;
-        if ((ox === "auto" || ox === "scroll") && n.scrollWidth > n.clientWidth) return true;
-      }
-      return false;
-    };
+    // 橫向捲動列（文章卡片）也照常套用：瀏覽器判斷「進入畫面」時會考慮容器裁切，
+    // 被裁掉的卡片在左右捲到之前本來就看不見，捲到時才進入畫面、開始建造
     const blocks = [...document.querySelectorAll('[data-swarm]:not([data-swarm="off"])')]
-      .filter((el) => !inHScroller(el))
       .map((el, i) => ({ el, index: i, tasks: [], guides: [], active: false, measures: 0 }));
     blocks.forEach((b) => b.el.classList.add("swarm-managed")); // 關掉 Reveal 自己的滑入動畫
 
