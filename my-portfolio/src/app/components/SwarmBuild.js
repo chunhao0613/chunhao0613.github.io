@@ -11,6 +11,8 @@
 //   若未上色時內容會看不清楚（深色容器在淺色頁面、白色按鈕在深色頁面），改成先上色。
 // - 游標有意圖：尺規、紅色參考線（同一欄的文字會吸附對齊）、紅色間距標註、
 //   重複元件用 ⌥ 拖曳複製後再重新打字、偶爾拉過頭再修正。
+// - 每個游標有自己的低彩度顏色，它拉的框、角點、尺寸標籤、游標都是同色，一眼看出誰在做什麼。
+// - 串流時最新冒出的字帶一道該色的生成前緣；上色時底色從點擊處向外塗刷掃開。
 // - 右下角的建造紀錄列出每個步驟。
 //
 // 文字揭露只用 clip-path 與覆蓋層，不改動任何 DOM 文字，React、搜尋引擎、讀屏軟體不受影響。
@@ -25,6 +27,9 @@ const MAX_CURSORS = 36;
 // 保底時間依區塊大小：基本 2.6 秒，每個元素加 60ms，最多 5.5 秒
 const deadlineOf = (n) => Math.min(5500, 2600 + n * 60);
 const CANCEL = Symbol("cancel");
+// 每個游標（agent）一個低彩度色相：柔藍、鼠尾草綠、灰玫瑰、沙色、薰衣草、灰青。
+// 實際顏色在 CSS 以 oklch(亮度 彩度 色相) 組合，深淺主題各一組亮度
+const HUES = [250, 160, 20, 80, 300, 200];
 
 const CURSOR_HTML =
   '<svg class="m-arrow" width="18" height="22" viewBox="0 0 18 22"><path d="M3 2.2 L3 17.6 L7.1 13.7 L9.8 19.8 L12.6 18.6 L9.9 12.6 L15.6 12.6 Z"/></svg>' +
@@ -380,7 +385,8 @@ export default function SwarmBuild() {
           performance.now() - t0 < 1500
             ? { x: sx + vw * 0.5 + rand(-60, 60), y: sy + vh * 0.42 + rand(-40, 40) }
             : { x: clamp(x + rand(-150, -50), sx + 30, sx + vw - 30), y: clamp(y + rand(70, 160), sy + 30, sy + vh - 30) };
-        Object.assign(c, { el, busy: false, hideTimer: 0 });
+        Object.assign(c, { el, busy: false, hideTimer: 0, h: HUES[cursors.length % HUES.length] });
+        el.style.setProperty("--h", c.h);
         cursors.push(c);
       }
       if (!c) return null;
@@ -398,6 +404,7 @@ export default function SwarmBuild() {
       c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
     };
     const mode = (c, m) => (c.el.dataset.mode = m);
+    const tint = (d, c) => d.style.setProperty("--h", c.h); // 覆蓋層套上該游標的顏色
     const click = (c) => {
       c.el.classList.add("click");
       setTimeout(() => c.el.classList.remove("click"), 140);
@@ -442,6 +449,7 @@ export default function SwarmBuild() {
       t.paintFirst = Math.abs(eff - pageL) > 0.35;
       t.bg = t.cs.backgroundColor;
       t.bgOpaque = bg.a >= 0.9;
+      t.bgImg = t.cs.backgroundImage;
     };
 
     const chk = (t) => {
@@ -517,6 +525,7 @@ export default function SwarmBuild() {
       await sleep(rand(20, 100)); // 下筆前短暫停頓
       chk(t);
       const box = ov(t, `swarm-box${g.text ? " swarm-tbox" : ""}`);
+      tint(box, c);
       pos(box, g.x, g.y, 0, 0);
       box.innerHTML = `<b></b><b></b><b></b><b></b>${g.badge ? '<span class="swarm-badge"></span>' : ""}`;
       const badge = box.querySelector(".swarm-badge");
@@ -535,7 +544,8 @@ export default function SwarmBuild() {
       return box;
     };
 
-    // 上色：游標點一下，背景、邊框、陰影過渡回原樣
+    // 上色：游標點一下，底色從點擊處向外「塗刷」掃開，前緣帶一圈該游標的顏色；
+    // 只動背景（radial-gradient），裡面的文字不受影響。邊框、陰影同時淡入
     const paint = async (t, c, r, box) => {
       mode(c, "arrow");
       const px = r.left + Math.min(28, r.width / 2), py = r.top + Math.min(22, r.height / 2);
@@ -543,14 +553,31 @@ export default function SwarmBuild() {
       chk(t);
       click(c);
       const rp = ov(t, "swarm-ripple");
+      tint(rp, c);
       pos(rp, px, py);
-      setTimeout(() => kill(t, rp), 520);
-      setStyle(t, "transition", "background-color .45s ease, border-color .45s ease, box-shadow .45s ease, backdrop-filter .45s ease");
-      SKIN.forEach((p) => restoreStyle(t, p));
+      setTimeout(() => kill(t, rp), 560);
       if (box) kill(t, box, 420);
-      log("paint", label(t), t.bg && t.bg !== "rgba(0, 0, 0, 0)" ? "fill" : "stroke");
-      await sleep(360);
+      log("paint", label(t), t.bg && colorInfo(t.bg).a > 0.02 ? "fill" : "stroke");
+      setStyle(t, "transition", "border-color .45s ease, box-shadow .45s ease");
+      restoreStyle(t, "borderColor");
+      restoreStyle(t, "boxShadow");
+      const solid = t.bg && colorInfo(t.bg).a > 0.02 && (!t.bgImg || t.bgImg === "none");
+      if (solid) {
+        const lx = px - r.left, ly = py - r.top;
+        const R = Math.hypot(Math.max(lx, r.width - lx), Math.max(ly, r.height - ly)) + 20;
+        const rim = `oklch(${layer.dataset.theme === "light" ? 0.6 : 0.75} 0.07 ${c.h} / 0.4)`;
+        await animate(clamp(260 + R * 0.4, 320, 520), (k) => {
+          const rr = R * easeOut(k);
+          t.el.style.backgroundImage = `radial-gradient(circle at ${lx}px ${ly}px, ${t.bg} ${rr}px, ${rim} ${rr + 1.5}px, transparent ${rr + 9}px)`;
+        });
+      } else {
+        setStyle(t, "transition", "background-color .45s ease, border-color .45s ease, box-shadow .45s ease");
+        restoreStyle(t, "backgroundColor");
+        restoreStyle(t, "backgroundImage");
+        await sleep(360);
+      }
       chk(t);
+      SKIN.forEach((p) => restoreStyle(t, p));
       restoreStyle(t, "transition");
       t.painted = true;
     };
@@ -567,9 +594,11 @@ export default function SwarmBuild() {
       const covers = o.cover ? lines.map(() => ov(t, "swarm-cover")) : [];
       covers.forEach((d) => (d.style.background = o.cover));
       const bars = lines.map(() => ov(t, "swarm-skel"));
+      const edge = ov(t, "swarm-edge"); // 生成前緣：最新冒出的字帶一道淡色光暈
       const caret = ov(t, "swarm-caret");
+      [...bars, edge, caret].forEach((d) => tint(d, c));
       const apply = (rev) => {
-        let acc = 0, cx = null, cy = 0, ch = 0;
+        let acc = 0, cx = null, cy = 0, ch = 0, cl = 0;
         const parts = [];
         lines.forEach((l, i) => {
           const w = widths[i];
@@ -579,6 +608,7 @@ export default function SwarmBuild() {
             cx = x;
             cy = l.t;
             ch = l.b - l.t;
+            cl = l.l;
           }
           const lh = l.b - l.t;
           const [bx, by] = P(x, l.t + lh * 0.22);
@@ -591,6 +621,7 @@ export default function SwarmBuild() {
           }
           acc += w;
         });
+        const live = cx !== null;
         if (cx === null) {
           const l = lines[lines.length - 1];
           cx = rev > 0 ? l.r : lines[0].l;
@@ -600,6 +631,11 @@ export default function SwarmBuild() {
         if (!o.cover) el.style.clipPath = parts.length ? `path("${parts.join(" ")}")` : "inset(0 100% 100% 0)";
         const [px, py] = P(cx, cy);
         pos(caret, px + 1, py, undefined, ch * s);
+        if (live) {
+          const [ex] = P(Math.max(cl, cx - 90), cy);
+          pos(edge, ex, py, px - ex + 2, ch * s);
+        }
+        edge.style.opacity = live ? "" : "0";
         c.x = px + 6;
         c.y = py + ch * s * 0.55;
         place(c);
@@ -769,12 +805,14 @@ export default function SwarmBuild() {
       await fly(c, mr.left + gx, mr.top + gy);
       chk(t);
       const sel = ov(t, "swarm-box done swarm-sel");
+      tint(sel, c);
       pos(sel, mr.left, mr.top, mr.width, mr.height);
       sel.innerHTML = "<b></b><b></b><b></b><b></b>";
       click(c);
       await sleep(110);
       chk(t);
       const ghost = ov(t, "swarm-ghost");
+      tint(ghost, c);
       const clone = m.el.cloneNode(true);
       clone.removeAttribute("id");
       clone.classList.remove("swarm-pop");
@@ -787,6 +825,7 @@ export default function SwarmBuild() {
       ghost.appendChild(clone);
       pos(ghost, mr.left, mr.top, mr.width, mr.height);
       const alt = ov(t, "swarm-alt");
+      tint(alt, c);
       alt.textContent = "⌥";
       const meas = ov(t, "swarm-measure");
       kill(t, sel, 200);

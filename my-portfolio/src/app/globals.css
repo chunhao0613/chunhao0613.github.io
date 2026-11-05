@@ -108,7 +108,11 @@ body {
   --sw-cursor-stroke: #09090b;
   --sw-ruler-bg: rgba(9, 9, 11, 0.86);
   --sw-tick: rgba(161, 161, 170, 0.5);
-  --sw-red: #f24822;
+  /* 低彩度 agent 色：亮度 L、彩度 C 固定，色相由各元素的 --h 決定 */
+  --sw-L: 0.78;
+  --sw-C: 0.075;
+  --sw-red: oklch(0.7 0.13 32);
+  --sw-on-agent: #09090b;
 }
 .swarm-layer[data-theme="light"] {
   --sw-line: rgba(71, 85, 105, 0.7);
@@ -124,6 +128,13 @@ body {
   --sw-cursor-stroke: #ffffff;
   --sw-ruler-bg: rgba(248, 250, 252, 0.9);
   --sw-tick: rgba(71, 85, 105, 0.45);
+  --sw-L: 0.55;
+  --sw-C: 0.09;
+  --sw-red: oklch(0.57 0.14 32);
+  --sw-on-agent: #ffffff;
+}
+.swarm-world div {
+  --agent: oklch(var(--sw-L) var(--sw-C) var(--h, 250));
 }
 .swarm-world {
   position: absolute;
@@ -219,7 +230,7 @@ body {
 .swarm-cursor .m-text { translate: -6px -10px; }
 .swarm-cursor.click svg { scale: 0.82; }
 .swarm-cursor path {
-  fill: var(--sw-cursor-fill);
+  fill: var(--agent);
   stroke: var(--sw-cursor-stroke);
   stroke-width: 1.2;
   stroke-linejoin: round;
@@ -227,12 +238,12 @@ body {
 
 /* ---- 線框：拉框時實線＋尺寸，等待內容時變成淡虛線 */
 .swarm-box {
-  border: 1px solid var(--sw-line);
+  border: 1px solid var(--agent);
   transition: opacity 0.4s ease;
 }
 .swarm-box.swarm-tbox {
   border-style: dashed;
-  border-color: var(--sw-line-soft);
+  border-color: color-mix(in oklch, var(--agent) 70%, transparent);
 }
 .swarm-box.held {
   border-style: dashed;
@@ -246,7 +257,7 @@ body {
   position: absolute;
   width: 6px;
   height: 6px;
-  border: 1px solid var(--sw-line);
+  border: 1px solid var(--agent);
   background: var(--sw-handle-bg);
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -269,18 +280,20 @@ body {
   transform: translateX(-50%);
   padding: 1px 7px;
   border-radius: 999px;
-  border: 1px solid var(--sw-chip-border);
-  background: var(--sw-chip-bg);
+  border: 1px solid color-mix(in oklch, var(--agent) 70%, transparent);
+  background: color-mix(in oklch, var(--agent) 18%, var(--sw-chip-bg));
   color: var(--sw-chip-text);
-}
-.swarm-sel {
-  border-color: #0d99ff;
 }
 
 /* ---- 骨架：灰色佔位＋微光 */
 .swarm-world > .swarm-skel {
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--sw-skel-a) 30%, var(--sw-skel-b) 50%, var(--sw-skel-a) 70%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--agent) 22%, var(--sw-skel-a)) 30%,
+    color-mix(in oklch, var(--agent) 40%, var(--sw-skel-b)) 50%,
+    color-mix(in oklch, var(--agent) 22%, var(--sw-skel-a)) 70%
+  );
   background-size: 300% 100%;
   animation: swarm-shimmer 1s linear infinite;
   transition: opacity 0.15s ease;
@@ -293,9 +306,17 @@ body {
   to { background-position: 0 0; }
 }
 .swarm-world > .swarm-caret {
-  width: 2px;
+  width: 2.5px;
   border-radius: 1px;
-  background: var(--sw-caret);
+  background: var(--agent);
+  box-shadow: 0 0 10px var(--agent);
+}
+/* 生成前緣：最新冒出的字帶一道淡色光暈 */
+.swarm-world > .swarm-edge {
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--agent) 42%, transparent));
+  filter: blur(1.5px);
+  transition: opacity 0.25s ease;
 }
 .swarm-caret.idle {
   animation: swarm-blink 0.5s steps(1) infinite;
@@ -318,8 +339,9 @@ body {
   height: 30px;
   margin: -15px 0 0 -15px;
   border-radius: 50%;
-  border: 1.5px solid var(--sw-caret);
-  animation: swarm-ripple 0.5s ease-out forwards;
+  border: 1.5px solid var(--agent);
+  background: color-mix(in oklch, var(--agent) 15%, transparent);
+  animation: swarm-ripple 0.55s ease-out forwards;
 }
 @keyframes swarm-ripple {
   from { scale: 0.2; opacity: 0.9; }
@@ -341,6 +363,10 @@ body {
   border-radius: 3px;
   background: var(--sw-red);
   color: #fff;
+}
+.swarm-world > .swarm-alt {
+  background: var(--agent);
+  color: var(--sw-on-agent);
 }
 .swarm-world > .swarm-measure {
   background: var(--sw-red);
@@ -367,7 +393,7 @@ body {
 }
 .swarm-world > .swarm-ghost {
   overflow: hidden;
-  outline: 1px solid #0d99ff;
+  outline: 1px solid var(--agent);
   opacity: 0.9;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   z-index: 3;
@@ -440,18 +466,12 @@ body {
   font-size: inherit;
   opacity: 0.6;
 }
-.swarm-log .v-frame { color: #a1a1aa; }
-.swarm-log .v-stream { color: #38bdf8; }
-.swarm-log .v-resize { color: #38bdf8; }
-.swarm-log .v-assemble { color: #38bdf8; }
-.swarm-log .v-denoise { color: #a78bfa; }
-.swarm-log .v-dup { color: #fbbf24; }
-.swarm-log .v-paint { color: #34d399; }
-.swarm-log .v-guide { color: #f87171; }
-.swarm-layer[data-theme="light"] .swarm-log .v-stream,
-.swarm-layer[data-theme="light"] .swarm-log .v-resize,
-.swarm-layer[data-theme="light"] .swarm-log .v-assemble { color: #0284c7; }
-.swarm-layer[data-theme="light"] .swarm-log .v-denoise { color: #7c3aed; }
-.swarm-layer[data-theme="light"] .swarm-log .v-dup { color: #b45309; }
-.swarm-layer[data-theme="light"] .swarm-log .v-paint { color: #059669; }
-.swarm-layer[data-theme="light"] .swarm-log .v-guide { color: #dc2626; }
+.swarm-log em { color: oklch(var(--sw-L) var(--sw-C) var(--vh, 250)); }
+.swarm-log .v-frame { --vh: 250; color: var(--sw-chip-text); opacity: 0.8; }
+.swarm-log .v-stream,
+.swarm-log .v-resize,
+.swarm-log .v-assemble { --vh: 230; }
+.swarm-log .v-denoise { --vh: 300; }
+.swarm-log .v-dup { --vh: 80; }
+.swarm-log .v-paint { --vh: 160; }
+.swarm-log .v-guide { --vh: 30; }
