@@ -69,8 +69,12 @@ body {
 
 /* 開場前（JS 接手前）先藏住所有區塊；JS 接手後改為逐一元素隱藏。
    沒有 JS、手機、減少動態時內容照常顯示。 */
-.swarm-intro [data-swarm] {
+.swarm-intro [data-swarm]:not([data-swarm="off"]) {
   visibility: hidden;
+}
+/* 標了 data-swarm="off" 的元素不套用，就算在被藏的區塊裡也從第一幀就顯示 */
+.swarm-intro [data-swarm="off"] {
+  visibility: visible;
 }
 /* 建構進行中，關掉 Reveal 自己的滑入／淡入，進場完全交給游標 */
 .swarm-on [data-swarm].swarm-managed {
@@ -164,6 +168,11 @@ body {
 .swarm-layer.building .swarm-ruler-y,
 .swarm-layer.building .swarm-ruler-c {
   opacity: 1;
+}
+.swarm-layer.no-rulers .swarm-ruler-x,
+.swarm-layer.no-rulers .swarm-ruler-y,
+.swarm-layer.no-rulers .swarm-ruler-c {
+  display: none;
 }
 .swarm-ruler-x {
   left: 18px;

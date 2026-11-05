@@ -17,12 +17,23 @@
 //
 // 文字揭露只用 clip-path 與覆蓋層，不改動任何 DOM 文字，React、搜尋引擎、讀屏軟體不受影響。
 // 每個區塊進入畫面後有保底時間（依元素數量 2.6–5.5 秒），沒做完的直接彈出，絕不讓內容卡住。
-// 每個分頁工作階段只播一次；手機、減少動態效果時完全不啟用。
-// 開場前的隱藏由 layout.js 的內嵌腳本在第一次繪製前處理，避免閃爍。
+// 每個頁面在同一個分頁工作階段只播一次；手機、減少動態效果時完全不啟用。
+// 開場前的隱藏由 layout.js 的內嵌腳本在第一次繪製前處理（設定見 src/lib/swarm.js），避免閃爍；
+// 站內換頁（沒有重新載入）則由這裡的 useLayoutEffect 在繪製前處理。
+//
+// 用法：
+//   <SwarmBuild />               完整版：尺規、參考線、間距標註、⌥ 複製都有（首頁）
+//   <SwarmBuild mode="light" />  輕量版：只有拉框、串流、去噪、上色與紀錄（文章頁）
+// 頁面上標了 data-swarm 的區塊才會被建造（<Reveal> 會自動加上）；
+// 某個元素不想套用就加 data-swarm="off"，它和裡面的內容會照常直接顯示。
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+import { swarmKey, SWARM_MIN_WIDTH } from "@/lib/swarm";
 
-const DONE_KEY = "swarm-build-done";
+const MODES = {
+  full: { rulers: true, guides: true, measures: true, dup: true },
+  light: { rulers: false, guides: false, measures: false, dup: false },
+};
 const MAX_CURSORS = 36;
 // 保底時間依區塊大小：基本 2.6 秒，每個元素加 60ms，最多 5.5 秒
 const deadlineOf = (n) => Math.min(5500, 2600 + n * 60);
@@ -126,6 +137,7 @@ const tokenCount = (s) => {
 };
 
 function label(t) {
+  if (t.kind === "media") return "image";
   const tag = t.el.tagName.toLowerCase();
   if (/^h[1-6]$/.test(tag)) return "heading";
   if (tag === "p" || tag === "dd" || tag === "dt") return "text";
@@ -142,20 +154,24 @@ const snippet = (el) => {
   return s ? `"${s.length > 14 ? s.slice(0, 14) + "…" : s}"` : "";
 };
 
-export default function SwarmBuild() {
-  useEffect(() => {
+// 參數在內部叫 variant：效果裡另有切換游標外觀的 mode() 函式，同名會互相遮蔽
+export default function SwarmBuild({ mode: variant = "full" }) {
+  // useLayoutEffect：站內換頁時在繪製前就把元素藏好，不會先閃一下
+  useLayoutEffect(() => {
+    const features = MODES[variant] || MODES.full;
     const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const key = swarmKey(window.location.pathname);
     let played = false;
     try {
-      played = sessionStorage.getItem(DONE_KEY) === "1";
+      played = sessionStorage.getItem(key) === "1";
     } catch {}
-    if (reduce || window.innerWidth < 768 || played) {
+    if (reduce || window.innerWidth < SWARM_MIN_WIDTH || played) {
       root.classList.remove("swarm-intro");
       return;
     }
     try {
-      sessionStorage.setItem(DONE_KEY, "1");
+      sessionStorage.setItem(key, "1");
     } catch {}
     root.classList.add("swarm-on");
 
@@ -170,7 +186,7 @@ export default function SwarmBuild() {
       }
       return false;
     };
-    const blocks = [...document.querySelectorAll("[data-swarm]")]
+    const blocks = [...document.querySelectorAll('[data-swarm]:not([data-swarm="off"])')]
       .filter((el) => !inHScroller(el))
       .map((el, i) => ({ el, index: i, tasks: [], guides: [], active: false, measures: 0 }));
     blocks.forEach((b) => b.el.classList.add("swarm-managed")); // 關掉 Reveal 自己的滑入動畫
@@ -194,6 +210,7 @@ export default function SwarmBuild() {
       for (const child of el.children) {
         const cs = getComputedStyle(child);
         if (cs.display === "none") continue; // 不看 visibility：開場前整個區塊是 hidden
+        if (child.getAttribute("data-swarm") === "off") continue; // 不套用：照常顯示
         const r = child.getBoundingClientRect();
         if (r.width < 2 || r.height < 2) continue;
         const boxed = isBoxed(cs);
@@ -226,11 +243,11 @@ export default function SwarmBuild() {
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(t);
     });
-    groups.forEach((list) => list.slice(1).forEach((t) => (t.dupOf = list[0])));
+    if (features.dup) groups.forEach((list) => list.slice(1).forEach((t) => (t.dupOf = list[0])));
 
     // 參考線：區塊最外層、左緣對齊的文字（至少兩段）共用一條，每個區塊最多一條。
     // 卡片內部不拉，避免內容還沒出現就滿畫面紅線
-    blocks.forEach((b) => {
+    if (features.guides) blocks.forEach((b) => {
       const cols = new Map();
       b.tasks.forEach((t) => {
         if (t.kind !== "text" || t.parent) return;
@@ -263,7 +280,7 @@ export default function SwarmBuild() {
 
     // ================================================================ 圖層
     const layer = document.createElement("div");
-    layer.className = "swarm-layer";
+    layer.className = `swarm-layer${features.rulers ? "" : " no-rulers"}`;
     layer.setAttribute("aria-hidden", "true");
     layer.innerHTML =
       '<div class="swarm-ruler-x"></div><div class="swarm-ruler-y"></div><div class="swarm-ruler-c"></div><div class="swarm-world"></div>' +
@@ -494,7 +511,7 @@ export default function SwarmBuild() {
     // 用版面位置（offsetTop）算，上一個元素可能還在縮放中（例如 18px 的標題）
     const maybeMeasure = (t, r) => {
       const p = t.prevSib, b = t.block;
-      if (!p || b.measures >= 2 || p.state === "pending") return;
+      if (!features.measures || !p || b.measures >= 2 || p.state === "pending") return;
       if (!(t.el instanceof HTMLElement) || t.el.offsetParent !== p.el.offsetParent) return;
       const gap = t.el.offsetTop - (p.el.offsetTop + p.el.offsetHeight);
       if (gap < 6 || gap > 160) return;
@@ -1006,7 +1023,7 @@ export default function SwarmBuild() {
       blocks.forEach((b) => b.el.classList.remove("swarm-managed"));
       root.classList.remove("swarm-on");
     };
-  }, []);
+  }, [variant]);
 
   return null;
 }
