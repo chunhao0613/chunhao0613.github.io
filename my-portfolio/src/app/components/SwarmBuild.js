@@ -95,8 +95,15 @@ export default function SwarmBuild() {
     };
 
     // 閒置的游標繞著滑鼠鬆散盤旋
+    // 框放在「頁面座標」的 world 圖層，每幀跟著捲動位移，
+    // 建構途中捲動頁面時，框會黏在內容上，不會停在原本的螢幕位置。
+    const world = document.createElement("div");
+    world.className = "swarm-world";
+    layer.appendChild(world);
+
     const tick = (now) => {
       if (!alive) return;
+      world.style.transform = `translate3d(${-window.scrollX}px, ${-window.scrollY}px, 0)`;
       const t = (now - t0) / 1000;
       cursors.forEach((c, i) => {
         if (c.busy) return;
@@ -123,12 +130,13 @@ export default function SwarmBuild() {
         requestAnimationFrame(step);
       });
 
+    // x、y 是頁面座標；每幀換算成畫面座標，目標跟著捲動走
     const moveTo = (c, x, y, dur) => {
       const sx = c.x, sy = c.y;
       return animate(dur, (k) => {
         const e = easeInOut(k);
-        c.x = sx + (x - sx) * e;
-        c.y = sy + (y - sy) * e;
+        c.x = sx + (x - window.scrollX - sx) * e;
+        c.y = sy + (y - window.scrollY - sy) * e;
         place(c);
       });
     };
@@ -141,29 +149,32 @@ export default function SwarmBuild() {
       // 只動畫畫面內看得到的那一段，太高的區塊不用拖到畫面外
       const vh = window.innerHeight;
       const top = Math.max(r.top, 8), bottom = Math.min(r.bottom, vh - 8);
-      const left = r.left, right = r.right;
+      // 轉成頁面座標，之後不受捲動影響
+      const ox = window.scrollX, oy = window.scrollY;
+      const left = r.left + ox, right = r.right + ox;
+      const docTop = top + oy, docBottom = bottom + oy;
 
       const fast = queue.length > 2 ? 0.45 : 1; // 排隊多時加快，不讓訪客等
-      await moveTo(c, left, top, rand(420, 650) * fast);
+      await moveTo(c, left, docTop, rand(420, 650) * fast);
 
       const box = document.createElement("div");
       box.className = "swarm-box";
       box.style.left = `${left}px`;
-      box.style.top = `${top}px`;
+      box.style.top = `${docTop}px`;
       const badge = document.createElement("span");
       badge.className = "swarm-badge";
       box.appendChild(badge);
-      layer.appendChild(box);
+      world.appendChild(box);
 
-      const dw = right - left, dh = Math.max(bottom - top, 24);
+      const dw = right - left, dh = Math.max(docBottom - docTop, 24);
       await animate(Math.min(900, 350 + dw * 0.5) * fast, (k) => {
         const e = easeInOut(k);
         const cw = dw * e, ch = dh * e;
         box.style.width = `${cw}px`;
         box.style.height = `${ch}px`;
         badge.textContent = `${Math.round(w * e)} × ${Math.round(h * e)}`;
-        c.x = left + cw;
-        c.y = top + ch;
+        c.x = left + cw - window.scrollX;
+        c.y = docTop + ch - window.scrollY;
         place(c);
       });
 

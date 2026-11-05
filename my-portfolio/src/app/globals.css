@@ -133,3 +133,9 @@ body {
 :root:has([data-theme="light"]) .swarm-box {
   border-color: #94a3b8;
 }
+.swarm-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
