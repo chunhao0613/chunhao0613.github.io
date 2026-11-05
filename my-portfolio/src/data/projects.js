@@ -4,18 +4,18 @@ export const projects = [
   {
     title: "Thaumio：IoT 行為與資料數位雙生引擎",
     period: "Jun 2026 · 獨立開源工具",
-    positioning: "讓 IoT 後端在沒有實體硬體時，也能用設定檔模擬大量裝置，跑整合測試與 CI。",
+    positioning: "給缺乏硬體設備的軟硬體開發者：不用真的買裝置，用一份設定檔就能模擬大量 IoT 裝置，跑整合測試與 CI。",
     desc: "只做數位雙生的「資料與行為」層，不碰 3D 和物理模擬。用一份 JSON 宣告整個拓撲（環境、閘道、協定、狀態公式），支援 mTLS、SAS Token、JWT。",
-    role: "定義產品邊界（刻意不做 3D）、設計 JSON Schema 讓 IDE 能自動補完與驗證，並選擇雙緩衝狀態求值，解決 JSON key 順序造成公式相依失敗的問題。",
+    role: "從自己的需求出發，決定做成開源工具給大家用。原本想做視覺化，但為了「輕量、能放進 CI」先把 3D 拿掉，留待未來發展成教學與模擬用途。AI 提出用 JSON 宣告拓撲，我評估後採用，並要求附上 Schema，讓設定檔能在 IDE 中驗證。",
     tags: ["Python", "asyncio", "MQTT", "JSON Schema", "Docker"],
     links: [{ label: "原始碼", href: "https://github.com/chunhao0613/Thaumio" }],
   },
   {
     title: "安全智慧家居系統（IOTA）",
-    period: "Apr – Nov 2026 · 團隊專題",
+    period: "Apr – Nov 2026 · 6 人團隊專題",
     positioning: "從 ESP32 門鎖到手機 App 再到區塊鏈公證，跨多個 repo 和多位成員的完整 IoT 系統。",
     desc: "ESP32 透過 MQTT（TLS 1.3、自簽 CA）連到 Docker 化的後端，Flutter App 遠端開鎖並接收門鈴、破壞警報。異常資料以 SHA-256 加 Merkle Tree 批次錨定到 IOTA Tangle，並以 Thaumio 模擬裝置做 4 條鏈的效能比較。",
-    role: "負責跨 repo 整合：定 MQTT topic 協定與 UC 文件、拆分 API／前端／韌體的邊界，並撰寫 HANDOVER 交接文件，讓組員與 AI 都能接手。",
+    role: "負責跨 repo 整合與對齊。團隊分成 App、API、硬體、IOTA、資料庫，實際投入的約 2–4 人。App 連不上硬體時，我從症狀判斷問題出在中間的 API 層；之後改用 UC 文件、MQTT topic 表和 HANDOVER 交接文件對齊介面。我也會審查 AI 和組員的方案，例如指出 Flutter 偏重 UI、核心邏輯要另外放在後端。回顧：重來一次我會切成前端、後端、硬體、IOTA 四層，並把人力集中在專題重點 IOTA 上。",
     tags: ["ESP32", "MQTT/TLS", "FastAPI", "Flutter", "IOTA", "Docker"],
     links: [
       { label: "API 與韌體", href: "https://github.com/chunhao0613/IOTA_API" },
