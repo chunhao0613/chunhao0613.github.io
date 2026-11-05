@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
+import { projects } from "../data/projects";
 import {
   ArrowUpRight,
   GitBranch,
@@ -673,92 +674,45 @@ const MainContent = React.memo(({ posts, scrollBlog, blogScrollRef }) => {
           </div>
         </Reveal>
 
-        <div className="flex flex-col gap-32">
-          {[
-            {
-              title: "安全智慧家居系統 (基於 IOTA)",
-              desc: "專題製作。結合物聯網與區塊鏈概念，運用 IOTA 的 Tangle 網路特性，打造去中心化、高安全性的智慧家居控制平台，確保設備數據傳輸的安全與不可篡改性。",
-              tags: ["IOTA", "C++", "IoT", "System Architecture"],
-              year: "Apr 08, 2026",
-              img: "[IOTA Smart Home Image]",
-            },
-            {
-              title: "AI 知識庫系統 (RAG 架構)",
-              desc: "整合 LangChain 框架與外部 LLM API，開發網站式的本地資料庫檢索生成系統。透過 RAG 技術，讓 AI 能基於本地機密或專屬資料進行精準回答，大幅提升專業性。",
-              tags: ["Python", "LangChain", "RAG", "API Integration"],
-              year: "Apr 05, 2026",
-              img: "[RAG System Image]",
-              link: "https://ragproject--chunhao0613.replit.app/",
-              linkLabel: "開啟 RAG Demo",
-            },
-          ].map((project, idx) => {
-            const CardTag = project.link ? "a" : "div";
-
-            return (
-              <Reveal
-                key={idx}
-                delay={0}
-                type={idx % 2 === 0 ? "slide-left" : "slide-right"}
-              >
-                <CardTag
-                  {...(project.link
-                    ? {
-                      href: project.link,
-                      target: "_blank",
-                      rel: "noopener noreferrer",
-                    }
-                    : {})}
-                  className="group relative grid md:grid-cols-2 gap-12 items-center cursor-pointer"
-                >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 aspect-[4/3] ${idx % 2 !== 0 ? "md:order-2" : ""
-                      }`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 group-hover:scale-105 transition-transform duration-700 ease-out flex items-center justify-center mix-blend-overlay">
-                      <span className="text-zinc-700 font-mono text-sm tracking-widest">
-                        {project.img}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`flex flex-col justify-center ${idx % 2 !== 0 ? "md:order-1" : ""
-                      }`}
-                  >
-                    <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">
-                      {project.year}
-                    </p>
-                    <h3 className="text-3xl font-bold mb-6 group-hover:text-white transition-colors flex items-center gap-3">
-                      {project.title}
-                      <span className="p-2 bg-zinc-800/0 rounded-full group-hover:bg-zinc-800 transition-colors">
-                        <ArrowUpRight
-                          className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300"
-                          size={20}
-                        />
-                      </span>
-                    </h3>
-                    <p className="text-zinc-400 mb-8 leading-relaxed text-lg">
-                      {project.desc}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
-                      <span>{project.linkLabel || "查看連結"}</span>
-                      <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </div>
-                  </div>
-                </CardTag>
-              </Reveal>
-            );
-          })}
+        <Reveal type="fade-up">
+          <h3 className="text-2xl font-bold mb-3">其他專案</h3>
+          <p className="text-zinc-400 mb-10 max-w-3xl leading-relaxed">
+            每個專案都標出「我負責的部分」：程式碼由 AI 協作產出，我負責拆需求、定規格、做架構與技術選型，並寫交接文件讓工作能被接手。
+          </p>
+        </Reveal>
+        <div className="grid md:grid-cols-2 gap-6">
+          {projects.map((project) => (
+            <Reveal key={project.title} type="fade-up">
+              <article className="h-full flex flex-col p-8 rounded-3xl border border-zinc-800 bg-zinc-900/30">
+                <p className="text-zinc-500 font-mono text-xs mb-3 border-l-2 border-zinc-700 pl-3">{project.period}</p>
+                <h4 className="text-2xl font-bold mb-3 text-zinc-100">{project.title}</h4>
+                <p className="text-zinc-200 mb-3 leading-relaxed">{project.positioning}</p>
+                <p className="text-sm text-zinc-400 mb-4 leading-relaxed">{project.desc}</p>
+                <div className="text-sm text-zinc-400 mb-6 leading-relaxed border-l-2 border-zinc-600 pl-3">
+                  <span className="font-mono text-xs text-zinc-500 block mb-1">我的角色</span>
+                  {project.role}
+                </div>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {project.tags.map((tag) => (
+                    <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">{tag}</span>
+                  ))}
+                </div>
+                <div className="mt-auto flex flex-wrap gap-3">
+                  {project.links.map((link) =>
+                    link.internal ? (
+                      <Link key={link.href} href={link.href} className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
+                        {link.label} <ArrowUpRight size={14} />
+                      </Link>
+                    ) : (
+                      <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
+                        {link.label} <ArrowUpRight size={14} />
+                      </a>
+                    )
+                  )}
+                </div>
+              </article>
+            </Reveal>
+          ))}
         </div>
       </section>
 
