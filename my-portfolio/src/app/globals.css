@@ -60,15 +60,15 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.16) 1px, transparent 1.2px);
+  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.14) 1px, transparent 1.2px);
   background-size: 24px 24px;
 }
 [data-theme="light"] .design-grid {
-  background-image: radial-gradient(circle, rgba(71, 85, 105, 0.22) 1px, transparent 1.2px);
+  background-image: radial-gradient(circle, rgba(71, 85, 105, 0.2) 1px, transparent 1.2px);
 }
 
-/* 只有 SwarmBuild 啟動時才先藏起來；沒有 JS 或減少動態時內容照常顯示 */
-.swarm-on [data-swarm]:not(.swarm-built) {
+/* 開場時只藏首頁區塊；沒有 JS、手機、減少動態時內容照常顯示 */
+.swarm-intro #about [data-swarm]:not(.swarm-built) {
   visibility: hidden;
 }
 
@@ -79,15 +79,27 @@ body {
   pointer-events: none;
   overflow: hidden;
 }
-.swarm-cursor {
+.swarm-world {
   position: absolute;
   left: 0;
   top: 0;
   will-change: transform;
+}
+
+/* 游標：彩色小圓點＋與網站標籤一致的鋅灰膠囊名牌 */
+.swarm-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.8s ease;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.swarm-cursor.on {
+  opacity: 1;
 }
 .swarm-cursor i {
   width: 8px;
@@ -95,47 +107,60 @@ body {
   margin: -4px 0 0 -4px;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent);
 }
 .swarm-cursor span,
 .swarm-badge {
-  padding: 2px 8px;
+  padding: 1px 8px;
   border-radius: 999px;
   border: 1px solid #3f3f46;
-  background: rgba(24, 24, 27, 0.9);
+  background: rgba(24, 24, 27, 0.92);
   color: #d4d4d8;
-  font: 500 10px/1.5 var(--font-geist-mono), ui-monospace, monospace;
+  font: 500 10px/1.6 var(--font-geist-mono), ui-monospace, monospace;
   white-space: nowrap;
 }
+
+/* 選取框：細線＋完成時出現的四個角點 */
 .swarm-box {
   position: absolute;
-  border: 1px dashed #71717a;
-  border-radius: 10px;
-  transition: opacity 0.5s ease;
+  border: 1px solid color-mix(in srgb, var(--c) 55%, #71717a);
+  border-radius: 6px;
+  transition: opacity 0.45s ease;
 }
-.swarm-box-done {
+.swarm-box.out {
   opacity: 0;
 }
+.swarm-box b {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid color-mix(in srgb, var(--c) 70%, #a1a1aa);
+  background: #09090b;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.swarm-box.done b {
+  opacity: 1;
+  transform: none;
+}
+.swarm-box b:nth-child(1) { left: -4px; top: -4px; }
+.swarm-box b:nth-child(2) { right: -4px; top: -4px; }
+.swarm-box b:nth-child(3) { left: -4px; bottom: -4px; }
+.swarm-box b:nth-child(4) { right: -4px; bottom: -4px; }
 .swarm-badge {
   position: absolute;
-  right: 0;
-  bottom: -24px;
+  left: 50%;
+  bottom: -26px;
+  transform: translateX(-50%);
 }
-.swarm-idle .swarm-cursor {
-  opacity: 0;
-}
+
 :root:has([data-theme="light"]) .swarm-cursor span,
 :root:has([data-theme="light"]) .swarm-badge {
   border-color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   color: #334155;
 }
-:root:has([data-theme="light"]) .swarm-box {
-  border-color: #94a3b8;
-}
-.swarm-world {
-  position: absolute;
-  left: 0;
-  top: 0;
-  will-change: transform;
+:root:has([data-theme="light"]) .swarm-box b {
+  background: #ffffff;
 }

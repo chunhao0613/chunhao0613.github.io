@@ -470,9 +470,11 @@ export function HomeClient({ posts }) {
         [data-theme="light"] .bg-zinc-900 { background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         [data-theme="light"] .bg-zinc-900\\/90 { background-color: rgba(255, 255, 255, 0.95); }
         [data-theme="light"] .bg-zinc-900\\/80 { background-color: rgba(255, 255, 255, 0.85); }
+        [data-theme="light"] .bg-zinc-900\\/30 { background-color: rgba(255,255,255,0.6); }
         [data-theme="light"] .bg-zinc-900\\/50, 
         [data-theme="light"] .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7); }
         [data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
+        [data-theme="light"] .text-zinc-100 { color: #020617; }
         [data-theme="light"].text-zinc-200, [data-theme="light"] .text-zinc-200 { color: #020617; }
         [data-theme="light"].text-zinc-300, [data-theme="light"] .text-zinc-300 { color: #0f172a; }
         [data-theme="light"].text-zinc-400, [data-theme="light"] .text-zinc-400 { color: #1e293b; }
