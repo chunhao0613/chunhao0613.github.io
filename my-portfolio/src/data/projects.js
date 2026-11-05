@@ -8,7 +8,10 @@ export const projects = [
     desc: "只做數位雙生的「資料與行為」層，不碰 3D 和物理模擬。用一份 JSON 宣告整個拓撲（環境、閘道、協定、狀態公式），支援 mTLS、SAS Token、JWT。",
     role: "從自己的需求出發，決定做成開源工具給大家用。原本想做視覺化，但為了「輕量、能放進 CI」先把 3D 拿掉，留待未來發展成教學與模擬用途。AI 提出用 JSON 宣告拓撲，我評估後採用，並要求附上 Schema，讓設定檔能在 IDE 中驗證。",
     tags: ["Python", "asyncio", "MQTT", "JSON Schema", "Docker"],
-    links: [{ label: "原始碼", href: "https://github.com/chunhao0613/Thaumio" }],
+    links: [
+      { label: "案例文章", href: "/blog/thaumio-digital-twin", internal: true },
+      { label: "原始碼", href: "https://github.com/chunhao0613/Thaumio" },
+    ],
   },
   {
     title: "安全智慧家居系統（IOTA）",
