@@ -21,11 +21,37 @@ const AGENTS = [
   { name: "Docs", color: "#00B5CE" },
 ];
 
-const ARROW =
-  "M4.6 3.9C4.2 3.1 4.9 2.4 5.7 2.8L20.6 9.4C21.5 9.8 21.4 11.1 20.4 11.3L13.9 12.9C13.4 13 13 13.4 12.9 13.9L11.3 20.4C11.1 21.4 9.8 21.5 9.4 20.6Z";
-
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const rand = (a, b) => a + Math.random() * (b - a);
+
+// 量「內容本身」最後停下的位置：
+// 1. 暫時關掉 Reveal 進場動畫的位移與縮放（Tailwind v4 用 translate／scale 屬性），
+//    量完再還原，框才不會跟著動畫中途的位置跑。
+// 2. 用 Range 取內容的實際範圍，避免框住整列空白。
+function contentRect(el) {
+  const st = el.style;
+  const saved = [st.transition, st.translate, st.scale, st.transform];
+  st.transition = "none";
+  st.translate = "none";
+  st.scale = "none";
+  st.transform = "none";
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  let r = range.getBoundingClientRect();
+  if (!r.width || !r.height) r = el.getBoundingClientRect();
+  [, st.translate, st.scale, st.transform] = saved;
+  el.getBoundingClientRect(); // 強制套用還原後的值，再把過場動畫接回去
+  st.transition = saved[0];
+  const pad = 6;
+  return {
+    left: r.left - pad,
+    right: r.right + pad,
+    top: r.top - pad,
+    bottom: r.bottom + pad,
+    width: r.width,
+    height: r.height,
+  };
+}
 
 export default function SwarmBuild() {
   useEffect(() => {
@@ -44,7 +70,8 @@ export default function SwarmBuild() {
     const cursors = AGENTS.map((a, i) => {
       const el = document.createElement("div");
       el.className = "swarm-cursor";
-      el.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24"><path d="${ARROW}" fill="${a.color}" stroke="#fff" stroke-width="1.5"/></svg><span style="background:${a.color}">${a.name}</span>`;
+      // 不用箭頭：一個小圓點加上和網站標籤同風格的膠囊名牌，顏色只留在圓點
+      el.innerHTML = `<i style="--c:${a.color}"></i><span>${a.name}</span>`;
       layer.appendChild(el);
       const c = {
         el,
@@ -109,7 +136,7 @@ export default function SwarmBuild() {
     // ---- 建構單一區塊：飛過去 → 拉框（顯示 W × H）→ 內容淡入
     const build = async (target, c) => {
       c.busy = true;
-      const r = target.getBoundingClientRect();
+      const r = contentRect(target);
       const w = Math.round(r.width), h = Math.round(r.height);
       // 只動畫畫面內看得到的那一段，太高的區塊不用拖到畫面外
       const vh = window.innerHeight;
@@ -121,12 +148,10 @@ export default function SwarmBuild() {
 
       const box = document.createElement("div");
       box.className = "swarm-box";
-      box.style.borderColor = c.color;
       box.style.left = `${left}px`;
       box.style.top = `${top}px`;
       const badge = document.createElement("span");
       badge.className = "swarm-badge";
-      badge.style.background = c.color;
       box.appendChild(badge);
       layer.appendChild(box);
 
