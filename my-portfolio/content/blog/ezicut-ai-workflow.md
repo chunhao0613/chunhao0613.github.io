@@ -1,9 +1,11 @@
 ---
-title: NovaCut：和 AI 協作打造瀏覽器影片剪輯器——我怎麼發現問題、驗證、修正
+title: EziCut：和 AI 協作打造瀏覽器影片剪輯器——我怎麼發現問題、驗證、修正
 date: 2026-11-02
 excerpt: 兩週內和 AI 一起做出全本機、免費、可部署的網頁剪輯器。重點不是 AI 寫了多少程式，而是我怎麼定方向、用數據驗收、追到根因。
 lede: 這是一個「我當技術負責人、AI 當開發夥伴」的專案。我負責定義目標、排優先順序、做技術取捨與驗收；AI 負責研究、實作與測試。這篇整理整個協作流程，以及過程中 10 個真實的問題是怎麼被發現、追到根因、再用數據證明修好的。
-cover: novacut
+cover: ezicut
+# 改名前（NovaCut）的網址，打開會自動轉到這篇
+aliases: [novacut-ai-workflow]
 width: wide
 tags:
   - AI 協作開發
@@ -29,14 +31,14 @@ highlights:
       desc: 變速後音高誤差 0、節拍誤差 16 ms 內、追蹤誤差 2.6 px、人聲對齊 0.17 ms，全部有量測紀錄。
 links:
   - kind: LIVE APP
-    title: NovaCut 線上版
+    title: EziCut 線上版
     desc: 打開瀏覽器就能剪，不用安裝，影片不會上傳。
-    href: https://chunhao0613.github.io/novacut/
+    href: https://chunhao0613.github.io/ezi-cut/
     cta: 開始使用
   - kind: SOURCE CODE
     title: 原始碼
     desc: Vite + 原生 JavaScript，約 7,400 行，推上 main 自動部署到 GitHub Pages。
-    href: https://github.com/chunhao0613/novacut
+    href: https://github.com/chunhao0613/ezi-cut
     cta: 前往 GitHub
 ---
 

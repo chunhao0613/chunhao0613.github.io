@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getAllPosts, getPost } from "@/lib/posts";
+import { getAliasTarget, getAllPosts, getPost } from "@/lib/posts";
 import { getProjects } from "@/lib/home";
 import { MarkdownContent } from "../../components/markdown/MarkdownContent";
 import { BackButton } from "./BackButton";
@@ -16,12 +16,16 @@ import {
 } from "../../components/post/PostBlocks";
 
 // static export：把每個 slug 都烘成靜態頁
+// 舊網址（frontmatter 的 aliases）也各產生一頁，內容只是轉到新網址
 export function generateStaticParams() {
-  return getAllPosts().map((post) => ({ slug: post.slug }));
+  const posts = getAllPosts();
+  return [...posts.map((post) => post.slug), ...posts.flatMap((post) => post.aliases)].map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
+  const moved = getAliasTarget(slug);
+  if (moved) return { title: moved.title, alternates: { canonical: moved.href }, robots: { index: false } };
   const post = getPost(slug);
 
   return {
@@ -42,6 +46,21 @@ export async function generateMetadata({ params }) {
 
 export default async function BlogPost({ params }) {
   const { slug } = await params;
+  // 舊網址：用 meta refresh 立刻轉到新網址（不靠 JavaScript，搜尋引擎也看得懂），並附上連結
+  const moved = getAliasTarget(slug);
+  if (moved) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-400 flex items-center justify-center p-6">
+        <meta httpEquiv="refresh" content={`0; url=${moved.href}`} />
+        <p>
+          這篇文章搬到了新網址：
+          <Link href={moved.href} className="text-white underline">
+            {moved.title}
+          </Link>
+        </p>
+      </div>
+    );
+  }
   const post = getPost(slug);
   const container = post.width === "wide" ? "max-w-5xl" : "max-w-3xl";
 

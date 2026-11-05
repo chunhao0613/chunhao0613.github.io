@@ -54,7 +54,7 @@ sections:
     title: 個人專案      # 段落大標，可省略
     blocks:             # 依序顯示的區塊
       - block: featured
-        project: novacut
+        project: ezicut
 ```
 
 段落的外框依第一個區塊決定：`hero` 佔滿一屏、`contact` 置中，其他是一般段落。
@@ -108,7 +108,7 @@ links:
   - { label: 案例文章, href: /blog/thaumio-digital-twin }
   - { label: 原始碼, href: "https://github.com/…" }
 # 以下只有精選專案會用到
-cover: novacut           # assets/images/covers/ 裡的檔名主幹
+cover: ezicut            # assets/images/covers/ 裡的檔名主幹
 coverAlt: 封面圖說明
 stats:
   - { value: 26 款, label: 競品功能矩陣, tone: sky }

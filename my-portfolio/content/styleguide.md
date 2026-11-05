@@ -42,8 +42,8 @@ intro: 這一頁列出網站上所有的區塊與 tone 色彩，每一個都附�
 block: hero
 status: Available for new opportunities
 statusTone: green
-greeting: Hi, 我是
-name: 余駿豪
+greeting: Hi, I'm
+name: Hugo
 nickname: 鮭魚
 role: 軟體開發者 / MCU-CSIE
 intro: 一段自我介紹。
@@ -63,11 +63,11 @@ terminal:
 
 ### featured：精選專案
 
-內容來自專案檔（這裡是 `content/projects/novacut.md`），區塊只指定要放哪一個。被精選的專案不會再出現在「其他專案」列表。
+內容來自專案檔（這裡是 `content/projects/ezicut.md`），區塊只指定要放哪一個。被精選的專案不會再出現在「其他專案」列表。
 
 ```block
 block: featured
-project: novacut
+project: ezicut
 eyebrow: 精選專案
 ```
 
@@ -138,7 +138,7 @@ tags: [WebCodecs, WebGL2, Web Audio]
 ```block
 links:
   - { kind: SOURCE CODE, title: 專案原始碼, desc: 一句話說明。, href: "https://github.com/chunhao0613", cta: 前往 GitHub }
-  - { kind: LIVE DEMO, title: 線上試用, desc: 一句話說明。, href: "https://chunhao0613.github.io/novacut/" }
+  - { kind: LIVE DEMO, title: 線上試用, desc: 一句話說明。, href: "https://chunhao0613.github.io/ezi-cut/" }
 ```
 
 ### award：獎項與計分板
