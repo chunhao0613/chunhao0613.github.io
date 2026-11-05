@@ -1,28 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
-import Link from "next/link";
-import { projects } from "../data/projects";
-import {
-  ArrowUpRight,
-  GitBranch,
-  Mail,
-  BookOpen,
-  Menu,
-  X,
-  Activity,
-  Sun,
-  Moon,
-  Code,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Image as ImageIcon,
-} from "lucide-react";
-import { WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
+import { Menu, X, Activity, Sun, Moon } from "lucide-react";
 import SwarmBuild from "./components/SwarmBuild";
-import Reveal from "./components/Reveal";
+import { HomeSection, featuredSlugs } from "./components/home/HomeBlocks";
+import { NamedIcon } from "./components/home/icons";
 
 
 
@@ -130,20 +113,24 @@ const ClickRippleContainer = () => {
   );
 };
 
-// 靜態菜單資料，放在組件外部避免每次渲染重新建立
-const MENU_ITEMS = [
-  { name: "關於我", href: "#about", icon: <User size={20} />, angle: 0 },
-  { name: "個人專案", href: "#projects", icon: <Code size={20} />, angle: 30 },
-  { name: "技術筆記", href: "#blog", icon: <BookOpen size={20} />, angle: 60 },
-  { name: "聯絡資訊", href: "#contact", icon: <Mail size={20} />, angle: 90 },
-];
+// 左側環形選單：由 content/home.md 每一段的 menu／icon 產生，角度平均分布在 0–90 度
+const buildMenu = (sections) => {
+  const items = sections.filter((s) => s.menu);
+  const step = items.length > 1 ? 90 / (items.length - 1) : 0;
+  return items.map((s, i) => ({
+    name: s.menu,
+    href: `#${s.id}`,
+    icon: <NamedIcon name={s.icon} size={20} />,
+    angle: i * step,
+  }));
+};
 
-export function HomeClient({ posts }) {
+export function HomeClient({ home, projects, posts }) {
+  const menuItems = useMemo(() => buildMenu(home.sections), [home]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const sidebarOpenTimerRef = useRef(null);
   const sidebarCloseTimerRef = useRef(null);
-  const blogScrollRef = useRef(null);
   const scrollProgressRef = useRef(null);
 
   const [menuRadius, setMenuRadius] = useState(120);
@@ -157,22 +144,6 @@ export function HomeClient({ posts }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
-
-  const scrollBlog = useCallback((direction) => {
-    if (blogScrollRef.current) {
-      const { current } = blogScrollRef;
-      // 一次翻一張卡片：卡片寬度＋卡片間距。用量的而不是容器寬度的 1/3，
-      // 否則每次少 8px，只能靠捲動吸附硬拉回來，有些瀏覽器會看到偏移
-      const card = current.firstElementChild;
-      const gap = parseFloat(getComputedStyle(current).columnGap) || 0;
-      const scrollAmount = card ? card.getBoundingClientRect().width + gap : current.clientWidth;
-      current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  }, []);
 
   useEffect(() => {
     let rafId = null;
@@ -365,7 +336,7 @@ export function HomeClient({ posts }) {
 
         {/* 選單項目的環繞佈局 */}
         <div className="absolute top-0 left-0 w-0 h-0">
-          {isSidebarOpen && MENU_ITEMS.map((item, idx) => {
+          {isSidebarOpen && menuItems.map((item, idx) => {
             const radius = menuRadius;
             const rad = (item.angle * Math.PI) / 180;
             const x = Math.cos(rad) * radius;
@@ -448,357 +419,19 @@ export function HomeClient({ posts }) {
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-100 z-50 transition-all duration-150 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)] w-0"
       />
 
-      <MainContent posts={posts} scrollBlog={scrollBlog} blogScrollRef={blogScrollRef} />
+      <MainContent home={home} projects={projects} posts={posts} />
     </div>
   );
 }
 
-const MainContent = React.memo(({ posts, scrollBlog, blogScrollRef }) => {
+// 首頁內容：依 content/home.md 的段落與區塊依序渲染（區塊元件在 components/home/HomeBlocks.js）
+const MainContent = React.memo(({ home, projects, posts }) => {
+  const featured = featuredSlugs(home.sections);
   return (
     <main className="relative z-10 max-w-6xl mx-auto px-6">
-      <section
-        id="about"
-        className="min-h-screen flex items-center border-b border-zinc-900 pt-20"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full [&>*]:min-w-0">
-          <div>
-            <Reveal type="slide-left" triggerOnMount={true}>
-              <p className="text-zinc-500 font-mono text-sm mb-6 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Available for new opportunities
-              </p>
-            </Reveal>
-            <Reveal delay={100} type="fade-up" triggerOnMount={true}>
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight mb-4 font-handwriting">
-                Hi, 我是
-                <br />
-                余駿豪{" "}
-                <span className="text-3xl md:text-5xl text-zinc-500 font-medium tracking-normal font-handwriting">
-                  / <SalmonEasterEgg>鮭魚</SalmonEasterEgg>
-                </span>
-              </h1>
-              <h2 className="text-2xl md:text-3xl text-zinc-400 font-medium mb-8 font-handwriting tracking-wide">
-                軟體開發者 / MCU-CSIE
-              </h2>
-            </Reveal>
-            <Reveal delay={200} type="fade-up" triggerOnMount={true}>
-              <p className="text-lg text-zinc-400 leading-relaxed mb-10 max-w-lg">
-                我對開發一直保持好奇，也習慣把想法做成能驗證的成果。擅長把複雜技術整理成好閱讀的架構與交接文件，包含嚴謹的
-                SRS 與系統分析。技術範圍從 AI RAG 應用到區塊鏈智慧家居，持續把點子落地成能解決真實問題的方案。
-              </p>
-            </Reveal>
-            <Reveal delay={300} type="fade-up" triggerOnMount={true}>
-              <div className="flex gap-4 items-center">
-                <a
-                  href="#projects"
-                  className="bg-white text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2"
-                >
-                  查看個人專案 <ArrowUpRight size={18} />
-                </a>
-                <a
-                  href="#contact"
-                  className="text-zinc-400 hover:text-white px-6 py-3 transition-colors font-medium"
-                >
-                  聯絡我
-                </a>
-              </div>
-            </Reveal>
-          </div>
-
-          <Reveal delay={400} type="scale" triggerOnMount={true}>
-            <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-6 md:p-8 font-mono text-sm shadow-2xl relative group w-full lg:max-w-2xl ml-auto">
-              <div className="flex gap-2 mb-4 border-b border-slate-800 pb-4">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <div className="text-emerald-400 mb-2">➜ ~ cat profile.json</div>
-              <pre className="text-slate-300 overflow-x-auto leading-relaxed">
-                <code>
-                  {`{\n`}
-                  {`  `}<span className="text-sky-400">"name"</span>: <WaveText text='"Chun-Hao Yu (鮭魚)"' className="text-white" />,{`\n`}
-                  {`  `}<span className="text-sky-400">"education"</span>: <WaveText text='"MCU-CSIE"' className="text-white" />,{`\n`}
-                  {`  `}<span className="text-sky-400">"skills"</span>: {`{\n`}
-                  {`    `}<span className="text-sky-400">"languages"</span>: [<WaveText text='"C++"' className="text-white" />, <WaveText text='"Java"' className="text-white" />, <WaveText text='"Python"' className="text-white" />, <WaveText text='"PHP"' className="text-white" />],{`\n`}
-                  {`    `}<span className="text-sky-400">"ai_tech"</span>: [<WaveText text='"RAG"' className="text-white" />, <WaveText text='"LangChain"' className="text-white" />, <WaveText text='"LLM API"' className="text-white" />],{`\n`}
-                  {`    `}<span className="text-sky-400">"domain"</span>: [<WaveText text='"System Analysis"' className="text-white" />, <WaveText text='"SRS"' className="text-white" />, <WaveText text='"IOTA"' className="text-white" />],{`\n`}
-                  {`    `}<span className="text-sky-400">"tools"</span>: [<WaveText text='"Git"' className="text-white" />, <WaveText text='"RESTful API"' className="text-white" />]{`\n`}
-                  {`  }`},{`\n`}
-                  {`  `}<span className="text-sky-400">"mindset"</span>: [<WaveText text='"Curiosity"' className="text-white" />, <WaveText text='"Innovation"' className="text-white" />]{`\n`}
-                  {`}`}
-                </code>
-              </pre>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section id="projects" className="py-32 border-b border-zinc-900">
-        <Reveal>
-          <div className="flex items-center gap-3 mb-20">
-            <Code className="text-zinc-500" />
-            <DeconstructTitle className="text-3xl md:text-4xl font-bold tracking-tight">
-              個人專案
-            </DeconstructTitle>
-          </div>
-        </Reveal>
-
-        <Reveal type="fade-up">
-          <article className="mb-24 rounded-3xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-            <div className="grid lg:grid-cols-[1.1fr_1fr]">
-              <Link href="/blog/novacut-ai-workflow" className="group relative block bg-zinc-950 aspect-[16/10] lg:aspect-auto overflow-hidden border-b lg:border-b-0 lg:border-r border-zinc-800">
-                <img
-                  src="/covers/novacut.webp"
-                  alt="NovaCut 瀏覽器影片剪輯器畫面"
-                  width={1200}
-                  height={750}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover object-left-top group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                />
-              </Link>
-              <div className="p-8 md:p-10 flex flex-col">
-                <p className="text-zinc-500 font-mono text-sm mb-4 border-l-2 border-zinc-700 pl-3">
-                  精選專案 · Oct – Nov 2026
-                </p>
-                <h3 className="text-3xl font-bold mb-4">NovaCut：瀏覽器本機影片剪輯器</h3>
-                <p className="text-zinc-400 leading-relaxed mb-6">
-                  與 AI 協作，兩週內從零做出全本機、免費、免安裝的剪輯網站。我負責定方向、排優先順序、做技術取捨與驗收；AI 負責研究、實作與測試。每個功能都用有標準答案的測試量測，不接受「應該可以」。
-                </p>
-                <dl className="grid grid-cols-2 gap-4 mb-6">
-                  {[
-                    ["26 款", "競品功能矩陣"],
-                    ["~7,400 行", "30 個模組"],
-                    ["18×", "AI 去背匯出加速"],
-                    ["0.17 ms", "人聲處理對齊誤差"],
-                  ].map(([value, label]) => (
-                    <div key={label} className="border-l-2 border-zinc-700 pl-3">
-                      <dt className="text-xl font-bold text-zinc-100 font-mono">{value}</dt>
-                      <dd className="text-xs text-zinc-500 mt-1">{label}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="flex flex-wrap gap-2 mb-8">
-                  {["WebCodecs", "WebGL2", "Web Audio", "transformers.js", "GitHub Actions"].map((tag) => (
-                    <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-auto flex flex-wrap gap-3">
-                  <Link href="/blog/novacut-ai-workflow" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 text-sm font-medium hover:bg-white transition-colors">
-                    閱讀案例：問題怎麼被發現與解決 <ArrowUpRight size={16} />
-                  </Link>
-                  <a href="https://chunhao0613.github.io/novacut/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors">
-                    線上試用 <ArrowUpRight size={16} />
-                  </a>
-                  <a href="https://github.com/chunhao0613/novacut" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors">
-                    <GitBranch size={16} /> 原始碼
-                  </a>
-                </div>
-              </div>
-            </div>
-          </article>
-        </Reveal>
-
-        <Reveal type="fade-up">
-          <div className="mb-32">
-            <h3 className="text-2xl font-bold mb-3">我和 AI 的協作方式</h3>
-            <p className="text-zinc-400 mb-10 max-w-3xl leading-relaxed">
-              AI 寫程式很快，但也會很有自信地寫錯。我的角色是把模糊的目標變成可驗證的範圍，並設計出有標準答案的測試，讓結果自己證明對錯。
-            </p>
-            <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                ["定義限制", "先決定不能妥協的原則（本機處理、免費、無浮水印），之後每個技術選擇都拿它來判斷。"],
-                ["先研究再動手", "讓 AI 平行調查開源專案與 26 款競品，產出功能矩陣，我依缺口決定優先順序。"],
-                ["小批交付", "每批只做 3–5 個功能，做完就驗收、更新文件，降低一次改壞的範圍。"],
-                ["用數據驗收", "合成 440 Hz 純音、120 BPM 鼓聲、已知軌跡的方塊當標準答案；甚至用 Whisper 把 AI 語音辨識回文字比對。"],
-                ["追到根因", "不接受「已知限制」。變速變調就自己實作 WSOLA；匯出全黑就讀回影格查像素，找到 1×1 圖層的真正原因。"],
-                ["回到使用者", "定期以新使用者身分走一遍流程，把「不好用」變成具體、可排序的問題清單。"],
-              ].map(([title, desc], i) => (
-                <li key={title} className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30">
-                  <span className="font-mono text-xs text-zinc-500">{String(i + 1).padStart(2, "0")}</span>
-                  <h4 className="text-lg font-bold mt-2 mb-2 text-zinc-100">{title}</h4>
-                  <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </Reveal>
-
-        <Reveal type="fade-up">
-          <h3 className="text-2xl font-bold mb-3">其他專案</h3>
-          <p className="text-zinc-400 mb-10 max-w-3xl leading-relaxed">
-            每個專案都標出「我負責的部分」：程式碼由 AI 協作產出，我負責拆需求、定規格、做架構與技術選型，並寫交接文件讓工作能被接手。
-          </p>
-        </Reveal>
-        <div className="grid md:grid-cols-2 gap-6">
-          {projects.map((project) => (
-            <Reveal key={project.title} type="fade-up">
-              <article className="h-full flex flex-col p-8 rounded-3xl border border-zinc-800 bg-zinc-900/30">
-                <p className="text-zinc-500 font-mono text-xs mb-3 border-l-2 border-zinc-700 pl-3">{project.period}</p>
-                <h4 className="text-2xl font-bold mb-3 text-zinc-100">{project.title}</h4>
-                <p className="text-zinc-200 mb-3 leading-relaxed">{project.positioning}</p>
-                <p className="text-sm text-zinc-400 mb-4 leading-relaxed">{project.desc}</p>
-                <div className="text-sm text-zinc-400 mb-6 leading-relaxed border-l-2 border-zinc-600 pl-3">
-                  <span className="font-mono text-xs text-zinc-500 block mb-1">我的角色</span>
-                  {project.role}
-                </div>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {project.tags.map((tag) => (
-                    <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">{tag}</span>
-                  ))}
-                </div>
-                <div className="mt-auto flex flex-wrap gap-3">
-                  {project.links.map((link) =>
-                    link.internal ? (
-                      <Link key={link.href} href={link.href} className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
-                        {link.label} <ArrowUpRight size={14} />
-                      </Link>
-                    ) : (
-                      <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
-                        {link.label} <ArrowUpRight size={14} />
-                      </a>
-                    )
-                  )}
-                </div>
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section id="blog" className="py-32 border-b border-zinc-900 relative">
-        <Reveal type="slide-left">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <div className="text-3xl md:text-4xl font-bold tracking-tight mb-4 flex items-center gap-3">
-                <BookOpen className="text-zinc-500" /> <DeconstructTitle>技術筆記</DeconstructTitle>
-              </div>
-              <p className="text-zinc-400 max-w-2xl">
-                除了寫程式，我也會把踩坑過程和學習心得記下來。這不只幫我整理思路，也希望能讓遇到同樣問題的人少走一點彎路。
-              </p>
-            </div>
-            
-            {/* 電腦端方向鍵 */}
-            <div className="hidden md:flex gap-3">
-              <button 
-                onClick={() => scrollBlog('left')}
-                className="p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button 
-                onClick={() => scrollBlog('right')}
-                className="p-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
-          </div>
-        </Reveal>
-
-        <div className="relative -mx-6 px-6">
-          <div 
-            ref={blogScrollRef}
-            className="flex overflow-x-auto gap-6 pb-12 pt-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          >
-            {posts.map((post, idx) => (
-              <Reveal 
-                key={post.slug} 
-                delay={idx * 100} 
-                type="fade-up" 
-                className="w-full md:w-[calc(33.3333%-16px)] shrink-0 snap-start h-full"
-              >
-                <Link
-                  href={post.href}
-                  className="group/card flex flex-col h-full bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-600 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
-                >
-                  <div className="aspect-[16/9] w-full bg-zinc-950 relative overflow-hidden border-b border-zinc-800/50">
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent z-10 pointer-events-none" />
-                    {post.image ? (
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        width={800}
-                        height={450}
-                        // 前三張在首屏內，其餘延後載入
-                        loading={idx < 3 ? "eager" : "lazy"}
-                        decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-700 group-hover/card:scale-105 transition-transform duration-700 ease-out bg-zinc-900">
-                        <ImageIcon size={32} className="opacity-30 mb-2" />
-                        <span className="font-mono text-xs tracking-wider opacity-50">IMAGE</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6 flex flex-col flex-grow justify-between bg-zinc-900/20">
-                    <div>
-                      <span className="text-xs font-mono text-zinc-500 mb-3 block">
-                        {post.displayDate}
-                      </span>
-                      <h3 className="text-lg font-bold text-zinc-300 group-hover/card:text-white transition-colors leading-snug line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <p className="mt-3 text-sm leading-relaxed text-zinc-400 line-clamp-3">
-                        {post.excerpt}
-                      </p>
-                    </div>
-                    <div className="mt-6 flex items-center gap-2 text-xs font-medium text-zinc-400 group-hover/card:text-white transition-colors">
-                      <span>閱讀文章</span>
-                      <ArrowUpRight size={14} className="transition-transform duration-300 group-hover/card:translate-x-1 group-hover/card:-translate-y-1" />
-                    </div>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="py-32 text-center relative">
-        <Reveal type="scale">
-          <DeconstructTitle className="text-4xl md:text-5xl font-bold tracking-tighter mb-8 relative z-10 font-handwriting justify-center">
-            準備好聊聊了嗎？
-          </DeconstructTitle>
-          <p className="text-zinc-400 mb-12 max-w-lg mx-auto relative z-10 text-lg font-handwriting tracking-wide">
-            我目前正在尋找前端工程師的全職機會。如果你覺得我的經歷和技能符合團隊需求，歡迎直接用
-            Email 找我聊聊。
-          </p>
-
-          <a
-            href="https://mail.google.com/mail/?view=cm&fs=1&to=chunhao0613@gmail.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg"
-          >
-            <Mail size={20} /> 發送 Email
-          </a>
-
-          <div className="mt-24 flex justify-center gap-6 relative z-10">
-            <a
-              href="https://github.com/chunhao0613"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub 個人頁面"
-              className="inline-flex items-center gap-2 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all font-medium"
-              title="前往 GitHub 個人頁面"
-            >
-              <svg width="20" height="20" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-                <path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                <path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-              </svg>
-              <span>GitHub</span>
-            </a>
-          </div>
-        </Reveal>
-      </section>
+      {home.sections.map((section) => (
+        <HomeSection key={section.id} section={section} projects={projects} posts={posts} featured={featured} />
+      ))}
     </main>
   );
 });

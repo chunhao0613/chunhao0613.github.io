@@ -180,7 +180,9 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     // ================================================================ 任務收集
     // 橫向捲動列（文章卡片）也照常套用：瀏覽器判斷「進入畫面」時會考慮容器裁切，
     // 被裁掉的卡片在左右捲到之前本來就看不見，捲到時才進入畫面、開始建造
+    // 標了 data-swarm="off" 的元素，連同裡面的區塊都不套用（例如內文裡用 ```block 插入的區塊）
     const blocks = [...document.querySelectorAll('[data-swarm]:not([data-swarm="off"])')]
+      .filter((el) => !el.closest('[data-swarm="off"]'))
       .map((el, i) => ({ el, index: i, tasks: [], guides: [], active: false, measures: 0 }));
     blocks.forEach((b) => b.el.classList.add("swarm-managed")); // 關掉 Reveal 自己的滑入動畫
 
