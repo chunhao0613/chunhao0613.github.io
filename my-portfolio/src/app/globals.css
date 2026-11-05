@@ -95,6 +95,35 @@ body {
   z-index: 60;
   pointer-events: none;
   overflow: hidden;
+  --sw-line: rgba(161, 161, 170, 0.75);
+  --sw-line-soft: rgba(161, 161, 170, 0.42);
+  --sw-handle-bg: #09090b;
+  --sw-chip-bg: rgba(24, 24, 27, 0.92);
+  --sw-chip-border: #3f3f46;
+  --sw-chip-text: #d4d4d8;
+  --sw-skel-a: rgba(113, 113, 122, 0.2);
+  --sw-skel-b: rgba(161, 161, 170, 0.38);
+  --sw-caret: #e4e4e7;
+  --sw-cursor-fill: #fafafa;
+  --sw-cursor-stroke: #09090b;
+  --sw-ruler-bg: rgba(9, 9, 11, 0.86);
+  --sw-tick: rgba(161, 161, 170, 0.5);
+  --sw-red: #f24822;
+}
+.swarm-layer[data-theme="light"] {
+  --sw-line: rgba(71, 85, 105, 0.7);
+  --sw-line-soft: rgba(71, 85, 105, 0.38);
+  --sw-handle-bg: #ffffff;
+  --sw-chip-bg: rgba(255, 255, 255, 0.95);
+  --sw-chip-border: #cbd5e1;
+  --sw-chip-text: #334155;
+  --sw-skel-a: rgba(148, 163, 184, 0.22);
+  --sw-skel-b: rgba(148, 163, 184, 0.48);
+  --sw-caret: #18181b;
+  --sw-cursor-fill: #0a0a0a;
+  --sw-cursor-stroke: #ffffff;
+  --sw-ruler-bg: rgba(248, 250, 252, 0.9);
+  --sw-tick: rgba(71, 85, 105, 0.45);
 }
 .swarm-world {
   position: absolute;
@@ -102,13 +131,69 @@ body {
   top: 0;
   will-change: transform;
 }
-
-/* 游標：單純的系統風格箭頭，深色模式白底黑框、白天模式黑底白框 */
-.swarm-cursor {
+.swarm-world > div {
   position: absolute;
+}
+.swarm-world .out {
+  opacity: 0 !important;
+  transition: opacity 0.35s ease;
+}
+
+/* ---- 尺規（建構進行中才出現） */
+.swarm-ruler-x,
+.swarm-ruler-y,
+.swarm-ruler-c {
+  position: absolute;
+  background-color: var(--sw-ruler-bg);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 2;
+}
+.swarm-layer.building .swarm-ruler-x,
+.swarm-layer.building .swarm-ruler-y,
+.swarm-layer.building .swarm-ruler-c {
+  opacity: 1;
+}
+.swarm-ruler-x {
+  left: 18px;
+  right: 0;
+  top: 0;
+  height: 18px;
+  border-bottom: 1px solid var(--sw-chip-border);
+  background-image:
+    repeating-linear-gradient(90deg, var(--sw-tick) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(90deg, var(--sw-tick) 0 1px, transparent 1px 100px);
+  background-size: 100% 4px, 100% 10px;
+  background-repeat: repeat-x;
+  background-position-y: 100%, 100%;
+}
+.swarm-ruler-y {
+  top: 18px;
+  bottom: 0;
+  left: 0;
+  width: 18px;
+  border-right: 1px solid var(--sw-chip-border);
+  background-image:
+    repeating-linear-gradient(180deg, var(--sw-tick) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(180deg, var(--sw-tick) 0 1px, transparent 1px 100px);
+  background-size: 4px 100%, 10px 100%;
+  background-repeat: repeat-y;
+  background-position-x: 100%, 100%;
+}
+.swarm-ruler-c {
   left: 0;
   top: 0;
-  margin: -3px 0 0 -3px;
+  width: 18px;
+  height: 18px;
+  border-right: 1px solid var(--sw-chip-border);
+  border-bottom: 1px solid var(--sw-chip-border);
+}
+
+/* ---- 游標：箭頭（移動）、十字（拉框）、I 型（打字） */
+.swarm-world > .swarm-cursor {
+  width: 0;
+  height: 0;
+  z-index: 5;
   will-change: transform;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -117,42 +202,66 @@ body {
 .swarm-cursor.on {
   opacity: 1;
 }
+.swarm-cursor svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  transition: scale 0.12s ease;
+}
+.swarm-cursor[data-mode="arrow"] .m-arrow,
+.swarm-cursor[data-mode="cross"] .m-cross,
+.swarm-cursor[data-mode="text"] .m-text {
+  display: block;
+}
+.swarm-cursor .m-arrow { translate: -3px -2px; }
+.swarm-cursor .m-cross { translate: -9.5px -9.5px; }
+.swarm-cursor .m-text { translate: -6px -10px; }
+.swarm-cursor.click svg { scale: 0.82; }
 .swarm-cursor path {
-  fill: #fafafa;
-  stroke: #09090b;
+  fill: var(--sw-cursor-fill);
+  stroke: var(--sw-cursor-stroke);
   stroke-width: 1.2;
   stroke-linejoin: round;
 }
 
-/* 選取框：細線＋完成時出現的四個角點 */
+/* ---- 線框：拉框時實線＋尺寸，等待內容時變成淡虛線 */
 .swarm-box {
-  position: absolute;
-  border: 1px solid rgba(161, 161, 170, 0.75);
+  border: 1px solid var(--sw-line);
   transition: opacity 0.4s ease;
 }
-.swarm-box.swarm-text {
+.swarm-box.swarm-tbox {
   border-style: dashed;
-  border-color: rgba(161, 161, 170, 0.55);
+  border-color: var(--sw-line-soft);
 }
-.swarm-box.out {
-  opacity: 0;
+.swarm-box.held {
+  border-style: dashed;
+  border-color: var(--sw-line-soft);
+}
+.swarm-box.held b,
+.swarm-box.held .swarm-badge {
+  display: none;
 }
 .swarm-box b {
   position: absolute;
   width: 6px;
   height: 6px;
-  border: 1px solid #a1a1aa;
-  background: #09090b;
+  border: 1px solid var(--sw-line);
+  background: var(--sw-handle-bg);
   opacity: 0;
   transition: opacity 0.15s ease;
 }
-.swarm-box.done b {
-  opacity: 1;
-}
+.swarm-box.done b { opacity: 1; }
 .swarm-box b:nth-child(1) { left: -3.5px; top: -3.5px; }
 .swarm-box b:nth-child(2) { right: -3.5px; top: -3.5px; }
 .swarm-box b:nth-child(3) { left: -3.5px; bottom: -3.5px; }
 .swarm-box b:nth-child(4) { right: -3.5px; bottom: -3.5px; }
+.swarm-badge,
+.swarm-guide-label,
+.swarm-alt {
+  font: 500 10px/1.6 var(--font-geist-mono), ui-monospace, monospace;
+  white-space: nowrap;
+}
 .swarm-badge {
   position: absolute;
   left: 50%;
@@ -160,26 +269,189 @@ body {
   transform: translateX(-50%);
   padding: 1px 7px;
   border-radius: 999px;
-  border: 1px solid #3f3f46;
-  background: rgba(24, 24, 27, 0.92);
-  color: #d4d4d8;
-  font: 500 10px/1.6 var(--font-geist-mono), ui-monospace, monospace;
-  white-space: nowrap;
+  border: 1px solid var(--sw-chip-border);
+  background: var(--sw-chip-bg);
+  color: var(--sw-chip-text);
+}
+.swarm-sel {
+  border-color: #0d99ff;
 }
 
-:root:has([data-theme="light"]) .swarm-cursor path {
-  fill: #0a0a0a;
-  stroke: #ffffff;
+/* ---- 骨架：灰色佔位＋微光 */
+.swarm-world > .swarm-skel {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--sw-skel-a) 30%, var(--sw-skel-b) 50%, var(--sw-skel-a) 70%);
+  background-size: 300% 100%;
+  animation: swarm-shimmer 1s linear infinite;
+  transition: opacity 0.15s ease;
 }
-:root:has([data-theme="light"]) .swarm-box {
-  border-color: rgba(71, 85, 105, 0.6);
+.swarm-world > .swarm-fill {
+  border-radius: 0;
 }
-:root:has([data-theme="light"]) .swarm-box b {
-  border-color: #64748b;
-  background: #ffffff;
+@keyframes swarm-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
 }
-:root:has([data-theme="light"]) .swarm-badge {
-  border-color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.95);
-  color: #334155;
+.swarm-world > .swarm-caret {
+  width: 2px;
+  border-radius: 1px;
+  background: var(--sw-caret);
 }
+.swarm-caret.idle {
+  animation: swarm-blink 0.5s steps(1) infinite;
+}
+@keyframes swarm-blink {
+  50% { opacity: 0; }
+}
+
+/* ---- 去噪顆粒 */
+.swarm-world > .swarm-grain {
+  overflow: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.55;
+}
+
+/* ---- 上色時的點擊漣漪 */
+.swarm-world > .swarm-ripple {
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sw-caret);
+  animation: swarm-ripple 0.5s ease-out forwards;
+}
+@keyframes swarm-ripple {
+  from { scale: 0.2; opacity: 0.9; }
+  to { scale: 1.4; opacity: 0; }
+}
+
+/* ---- 紅色：參考線、間距、⌥ 複製 */
+.swarm-world > .swarm-guide {
+  width: 1px;
+  background: color-mix(in srgb, var(--sw-red) 85%, transparent);
+  transition: box-shadow 0.15s ease, opacity 0.35s ease;
+}
+.swarm-guide.snap {
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--sw-red) 45%, transparent);
+}
+.swarm-guide-label,
+.swarm-alt {
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--sw-red);
+  color: #fff;
+}
+.swarm-world > .swarm-measure {
+  background: var(--sw-red);
+}
+.swarm-measure.v { width: 1px; }
+.swarm-measure.h { height: 1px; }
+.swarm-measure span {
+  position: absolute;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--sw-red);
+  color: #fff;
+  font: 600 9.5px/1.6 var(--font-geist-mono), ui-monospace, monospace;
+  white-space: nowrap;
+}
+.swarm-measure.v span { left: 5px; top: 50%; transform: translateY(-50%); }
+.swarm-measure.h span { left: 50%; top: -18px; transform: translateX(-50%); }
+.swarm-ghost.blank * {
+  color: transparent !important;
+}
+.swarm-ghost.blank img,
+.swarm-ghost.blank svg {
+  visibility: hidden;
+}
+.swarm-world > .swarm-ghost {
+  overflow: hidden;
+  outline: 1px solid #0d99ff;
+  opacity: 0.9;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  z-index: 3;
+}
+
+/* ---- 建造紀錄（右下角） */
+.swarm-log {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 300px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--sw-chip-border);
+  background: var(--sw-chip-bg);
+  color: var(--sw-chip-text);
+  font: 500 10.5px/1.7 var(--font-geist-mono), ui-monospace, monospace;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  translate: 0 8px;
+  transition: opacity 0.35s ease, translate 0.35s ease;
+}
+.swarm-log.on {
+  opacity: 1;
+  translate: 0 0;
+}
+.swarm-log .hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--sw-chip-border);
+}
+.swarm-log .hd i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: swarm-blink 1s steps(1) infinite;
+}
+.swarm-log.ok .hd i { animation: none; }
+.swarm-log .hd b { font-weight: 600; }
+.swarm-log .ct { margin-left: auto; opacity: 0.7; }
+.swarm-log .tm { opacity: 0.7; min-width: 34px; text-align: right; }
+.swarm-log ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-height: 72px;
+}
+.swarm-log li {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.swarm-log li:not(:last-child) { opacity: 0.55; }
+.swarm-log em {
+  font-style: normal;
+  min-width: 52px;
+}
+.swarm-log span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.swarm-log small {
+  margin-left: auto;
+  font-size: inherit;
+  opacity: 0.6;
+}
+.swarm-log .v-frame { color: #a1a1aa; }
+.swarm-log .v-stream { color: #38bdf8; }
+.swarm-log .v-resize { color: #38bdf8; }
+.swarm-log .v-assemble { color: #38bdf8; }
+.swarm-log .v-denoise { color: #a78bfa; }
+.swarm-log .v-dup { color: #fbbf24; }
+.swarm-log .v-paint { color: #34d399; }
+.swarm-log .v-guide { color: #f87171; }
+.swarm-layer[data-theme="light"] .swarm-log .v-stream,
+.swarm-layer[data-theme="light"] .swarm-log .v-resize,
+.swarm-layer[data-theme="light"] .swarm-log .v-assemble { color: #0284c7; }
+.swarm-layer[data-theme="light"] .swarm-log .v-denoise { color: #7c3aed; }
+.swarm-layer[data-theme="light"] .swarm-log .v-dup { color: #b45309; }
+.swarm-layer[data-theme="light"] .swarm-log .v-paint { color: #059669; }
+.swarm-layer[data-theme="light"] .swarm-log .v-guide { color: #dc2626; }
