@@ -991,13 +991,60 @@ export default function SwarmBuild({ mode: variant = "full" }) {
       );
       pump();
     };
+    // 橫向捲動列（文章卡片）：游標與線框只跟著整頁上下捲動，不會跟著卡片列左右移動。
+    // 所以卡片列正在滑動時，剛進入畫面的卡片先等它停下來再開工，位置才量得準；
+    // 若建造途中又翻頁，正在建造的卡片直接完成，不留下錯位的線框。
+    const scrollerOf = (el) => {
+      for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+        const ox = getComputedStyle(n).overflowX;
+        if ((ox === "auto" || ox === "scroll") && n.scrollWidth > n.clientWidth) return n;
+      }
+      return null;
+    };
+    const scrollers = new Map(); // 捲動容器 → { moving, timer, blocks }
+    blocks.forEach((b) => {
+      const sc = scrollerOf(b.el);
+      if (!sc) return;
+      if (!scrollers.has(sc)) scrollers.set(sc, { moving: false, timer: 0, blocks: [] });
+      scrollers.get(sc).blocks.push(b);
+      b.scroller = sc;
+    });
+    const tryActivate = (b) => {
+      if (!b.inView || b.active) return;
+      if (b.scroller && scrollers.get(b.scroller).moving) return; // 等卡片列停下來
+      activate(b);
+    };
+    const onScroll = (sc) => {
+      const st = scrollers.get(sc);
+      if (!st.moving) {
+        st.moving = true;
+        // 建造到一半的卡片直接完成
+        st.blocks.forEach((b) => {
+          if (!b.active) return;
+          b.tasks.forEach((t) => finishTask(t, true));
+        });
+      }
+      clearTimeout(st.timer);
+      st.timer = setTimeout(() => {
+        st.moving = false;
+        st.blocks.forEach(tryActivate);
+      }, 160);
+    };
+    const scrollHandlers = [];
+    scrollers.forEach((_, sc) => {
+      const h = () => onScroll(sc);
+      sc.addEventListener("scroll", h, { passive: true });
+      scrollHandlers.push([sc, h]);
+    });
+
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((en) => {
-          if (!en.isIntersecting) return;
-          io.unobserve(en.target);
           const b = blocks.find((x) => x.el === en.target);
-          if (b) activate(b);
+          if (!b) return;
+          b.inView = en.isIntersecting;
+          if (b.inView) tryActivate(b);
+          if (b.active) io.unobserve(en.target);
         }),
       { rootMargin: "0px" }
     );
@@ -1007,6 +1054,8 @@ export default function SwarmBuild({ mode: variant = "full" }) {
       alive = false;
       io.disconnect();
       timers.forEach(clearTimeout);
+      scrollHandlers.forEach(([sc, h]) => sc.removeEventListener("scroll", h));
+      scrollers.forEach((st) => clearTimeout(st.timer));
       clearInterval(logTimer);
       tasks.forEach((t) => {
         finishTask(t);

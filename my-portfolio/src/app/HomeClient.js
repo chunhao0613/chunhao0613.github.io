@@ -162,7 +162,11 @@ export function HomeClient({ posts }) {
   const scrollBlog = useCallback((direction) => {
     if (blogScrollRef.current) {
       const { current } = blogScrollRef;
-      const scrollAmount = window.innerWidth >= 768 ? current.clientWidth / 3 : current.clientWidth;
+      // 一次翻一張卡片：卡片寬度＋卡片間距。用量的而不是容器寬度的 1/3，
+      // 否則每次少 8px，只能靠捲動吸附硬拉回來，有些瀏覽器會看到偏移
+      const card = current.firstElementChild;
+      const gap = parseFloat(getComputedStyle(current).columnGap) || 0;
+      const scrollAmount = card ? card.getBoundingClientRect().width + gap : current.clientWidth;
       current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -456,7 +460,7 @@ const MainContent = React.memo(({ posts, scrollBlog, blogScrollRef }) => {
         id="about"
         className="min-h-screen flex items-center border-b border-zinc-900 pt-20"
       >
-        <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full [&>*]:min-w-0">
           <div>
             <Reveal type="slide-left" triggerOnMount={true}>
               <p className="text-zinc-500 font-mono text-sm mb-6 flex items-center gap-2">
