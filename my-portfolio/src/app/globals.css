@@ -69,7 +69,7 @@ body {
 
 /* 開場前（JS 接手前）先藏住所有區塊；JS 接手後改為逐一元素隱藏。
    沒有 JS、手機、減少動態時內容照常顯示。 */
-.swarm-intro [data-swarm]:not([data-swarm="off"]) {
+.swarm-intro [data-swarm]:not([data-swarm="off"]):not([data-swarm="off"] *) {
   visibility: hidden;
 }
 /* 標了 data-swarm="off" 的元素不套用，就算在被藏的區塊裡也從第一幀就顯示 */

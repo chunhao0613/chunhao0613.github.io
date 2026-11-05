@@ -3,8 +3,9 @@
 // 這是「能在 GitHub 網頁上安全編輯」的關鍵：填錯欄位頂多少一個區塊，
 // 不會像手寫 JSX 那樣讓整個建置失敗。
 import { ArrowUpRight, Award, BookOpen, Calculator, Rocket, ShieldAlert, Trophy } from "lucide-react";
+import { toneText } from "@/lib/tones";
 
-const ICONS = {
+export const ICONS = {
   award: Award,
   book: BookOpen,
   calculator: Calculator,
@@ -13,13 +14,6 @@ const ICONS = {
   trophy: Trophy,
 };
 
-const TONES = {
-  default: "text-white",
-  purple: "text-purple-400",
-  sky: "text-sky-400",
-  emerald: "text-emerald-400",
-  amber: "text-amber-400",
-};
 
 const CARD = "bg-zinc-900/20 border border-zinc-800/50 rounded-xl p-6";
 
@@ -174,7 +168,7 @@ export function AwardBanner({ award }) {
               {board.stats.map((stat) => (
                 <div key={stat.label}>
                   <div className="text-zinc-500 font-mono text-sm mb-1">{stat.label}</div>
-                  <div className={`text-3xl font-bold ${TONES[stat.tone] ?? TONES.default}`}>
+                  <div className={`text-3xl font-bold ${toneText(stat.tone, "text-white")}`}>
                     {stat.value}
                   </div>
                 </div>

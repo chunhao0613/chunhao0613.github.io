@@ -4,9 +4,13 @@
 
 | 想做的事 | 改哪裡 |
 |---|---|
-| 新增專案卡片 | `src/data/projects.js` 加一筆 |
+| 新增專案 | `content/projects/` 加一個 `.md` |
 | 新增文章 | `content/blog/` 加一個 `.md`，寫法見 `content/blog/README.md` |
-| 首頁新區塊 | `src/app/HomeClient.js`，內容用 `<Reveal>` 包起來 |
+| 修改首頁內容、順序、選單 | `content/home.md` |
+| 看所有區塊與色彩的樣子 | 打開 `/styleguide`（內容在 `content/styleguide.md`） |
+
+區塊與色彩的完整寫法見 `content/README.md`。首頁區塊的元件在 `src/app/components/home/HomeBlocks.js`，
+要新增一種區塊：在那裡加元件並登記到 `BLOCKS`，再把名稱加進 `src/lib/home.js` 的 `HOME_BLOCKS`。
 
 ## 「AI 建造」效果
 
