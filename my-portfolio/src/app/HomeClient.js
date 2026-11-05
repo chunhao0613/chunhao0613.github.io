@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { WaveText, DeconstructTitle, SalmonEasterEgg } from "./components/CanvasEffects";
+import SwarmBuild from "./components/SwarmBuild";
 
 
 
@@ -73,6 +74,7 @@ const Reveal = ({
   return (
     <div
       ref={ref}
+      data-swarm=""
       className={`transition-all duration-1000 ease-out ${isVisible ? visibleClass : initialClass
         } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
@@ -385,6 +387,8 @@ export function HomeClient({ posts }) {
       data-theme={isDarkMode ? "dark" : "light"}
       className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-zinc-800 selection:text-white relative overflow-hidden"
     >
+      <SwarmBuild />
+      <div className="design-grid" aria-hidden="true" />
       <div
         className="fixed inset-y-0 left-0 w-8 md:w-12 z-40"
       />

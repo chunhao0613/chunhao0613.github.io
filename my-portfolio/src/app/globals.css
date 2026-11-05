@@ -51,3 +51,73 @@ body {
 }
 
 
+
+/* ---------------------------------------------------------------
+   設計畫布風格：點陣網格背景＋多人協作游標建構（SwarmBuild.js）
+   --------------------------------------------------------------- */
+.design-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.16) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+[data-theme="light"] .design-grid {
+  background-image: radial-gradient(circle, rgba(71, 85, 105, 0.22) 1px, transparent 1.2px);
+}
+
+/* 只有 SwarmBuild 啟動時才先藏起來；沒有 JS 或減少動態時內容照常顯示 */
+.swarm-on [data-swarm]:not(.swarm-built) {
+  visibility: hidden;
+}
+
+.swarm-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+.swarm-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+  display: flex;
+  align-items: flex-start;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+.swarm-cursor span {
+  margin: 16px 0 0 -4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font: 600 11px/1.4 var(--font-geist-mono), ui-monospace, monospace;
+  color: #fff;
+  white-space: nowrap;
+}
+.swarm-box {
+  position: absolute;
+  border: 1.5px solid;
+  background: rgba(13, 153, 255, 0.04);
+  transition: opacity 0.5s ease;
+}
+.swarm-box-done {
+  opacity: 0;
+}
+.swarm-badge {
+  position: absolute;
+  right: -1px;
+  bottom: -22px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font: 600 10px/1.5 var(--font-geist-mono), ui-monospace, monospace;
+  color: #fff;
+  white-space: nowrap;
+}
+.swarm-cursor {
+  transition: opacity 0.8s ease;
+}
+.swarm-idle .swarm-cursor {
+  opacity: 0;
+}
