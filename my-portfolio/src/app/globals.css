@@ -67,9 +67,26 @@ body {
   background-image: radial-gradient(circle, rgba(71, 85, 105, 0.2) 1px, transparent 1.2px);
 }
 
-/* 開場時只藏首頁區塊；沒有 JS、手機、減少動態時內容照常顯示 */
-.swarm-intro #about [data-swarm]:not(.swarm-built) {
+/* 開場前（JS 接手前）先藏住所有區塊；JS 接手後改為逐一元素隱藏。
+   沒有 JS、手機、減少動態時內容照常顯示。 */
+.swarm-intro [data-swarm] {
   visibility: hidden;
+}
+/* 建構進行中，關掉 Reveal 自己的滑入／淡入，進場完全交給游標 */
+.swarm-on [data-swarm].swarm-managed {
+  opacity: 1 !important;
+  translate: none !important;
+  scale: none !important;
+  transition: none !important;
+}
+.swarm-pending {
+  opacity: 0 !important;
+}
+.swarm-pop {
+  animation: swarm-pop 0.35s ease-out;
+}
+@keyframes swarm-pop {
+  from { opacity: 0; scale: 0.96; }
 }
 
 .swarm-layer {
@@ -86,32 +103,62 @@ body {
   will-change: transform;
 }
 
-/* 游標：彩色小圓點＋與網站標籤一致的鋅灰膠囊名牌 */
+/* 游標：單純的系統風格箭頭，深色模式白底黑框、白天模式黑底白框 */
 .swarm-cursor {
   position: absolute;
   left: 0;
   top: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  margin: -3px 0 0 -3px;
   will-change: transform;
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.3s ease;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
 }
 .swarm-cursor.on {
   opacity: 1;
 }
-.swarm-cursor i {
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent);
+.swarm-cursor path {
+  fill: #fafafa;
+  stroke: #09090b;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
 }
-.swarm-cursor span,
+
+/* 選取框：細線＋完成時出現的四個角點 */
+.swarm-box {
+  position: absolute;
+  border: 1px solid rgba(161, 161, 170, 0.75);
+  transition: opacity 0.4s ease;
+}
+.swarm-box.swarm-text {
+  border-style: dashed;
+  border-color: rgba(161, 161, 170, 0.55);
+}
+.swarm-box.out {
+  opacity: 0;
+}
+.swarm-box b {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #a1a1aa;
+  background: #09090b;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.swarm-box.done b {
+  opacity: 1;
+}
+.swarm-box b:nth-child(1) { left: -3.5px; top: -3.5px; }
+.swarm-box b:nth-child(2) { right: -3.5px; top: -3.5px; }
+.swarm-box b:nth-child(3) { left: -3.5px; bottom: -3.5px; }
+.swarm-box b:nth-child(4) { right: -3.5px; bottom: -3.5px; }
 .swarm-badge {
-  padding: 1px 8px;
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  transform: translateX(-50%);
+  padding: 1px 7px;
   border-radius: 999px;
   border: 1px solid #3f3f46;
   background: rgba(24, 24, 27, 0.92);
@@ -120,47 +167,19 @@ body {
   white-space: nowrap;
 }
 
-/* 選取框：細線＋完成時出現的四個角點 */
-.swarm-box {
-  position: absolute;
-  border: 1px solid color-mix(in srgb, var(--c) 55%, #71717a);
-  border-radius: 6px;
-  transition: opacity 0.45s ease;
+:root:has([data-theme="light"]) .swarm-cursor path {
+  fill: #0a0a0a;
+  stroke: #ffffff;
 }
-.swarm-box.out {
-  opacity: 0;
+:root:has([data-theme="light"]) .swarm-box {
+  border-color: rgba(71, 85, 105, 0.6);
 }
-.swarm-box b {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border: 1px solid color-mix(in srgb, var(--c) 70%, #a1a1aa);
-  background: #09090b;
-  opacity: 0;
-  transform: scale(0.4);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+:root:has([data-theme="light"]) .swarm-box b {
+  border-color: #64748b;
+  background: #ffffff;
 }
-.swarm-box.done b {
-  opacity: 1;
-  transform: none;
-}
-.swarm-box b:nth-child(1) { left: -4px; top: -4px; }
-.swarm-box b:nth-child(2) { right: -4px; top: -4px; }
-.swarm-box b:nth-child(3) { left: -4px; bottom: -4px; }
-.swarm-box b:nth-child(4) { right: -4px; bottom: -4px; }
-.swarm-badge {
-  position: absolute;
-  left: 50%;
-  bottom: -26px;
-  transform: translateX(-50%);
-}
-
-:root:has([data-theme="light"]) .swarm-cursor span,
 :root:has([data-theme="light"]) .swarm-badge {
   border-color: #cbd5e1;
   background: rgba(255, 255, 255, 0.95);
   color: #334155;
-}
-:root:has([data-theme="light"]) .swarm-box b {
-  background: #ffffff;
 }

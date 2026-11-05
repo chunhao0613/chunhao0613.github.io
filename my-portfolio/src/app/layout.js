@@ -41,7 +41,7 @@ export const metadata = {
 // 在第一次繪製前就決定是否播放開場建構動畫（條件與 SwarmBuild.js 相同），
 // 避免首頁內容先閃一下再被藏起來。3.5 秒後無論如何都移除，
 // 就算 JS 沒載入成功，內容也不會一直藏著。
-const swarmBoot = `try{var d=document.documentElement;if(location.pathname==="/"&&innerWidth>=768&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&sessionStorage.getItem("swarm-intro-done")!=="1"){d.classList.add("swarm-intro");setTimeout(function(){d.classList.remove("swarm-intro")},3500)}}catch(e){}`;
+const swarmBoot = `try{var d=document.documentElement;if(location.pathname==="/"&&innerWidth>=768&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&sessionStorage.getItem("swarm-build-done")!=="1"){d.classList.add("swarm-intro");setTimeout(function(){d.classList.remove("swarm-intro")},3500)}}catch(e){}`;
 
 export default function RootLayout({ children }) {
   const jsonLd = {

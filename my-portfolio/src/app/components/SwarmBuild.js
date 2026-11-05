@@ -1,116 +1,132 @@
 "use client";
 
-// 「游標群組建構」效果，靈感來自多人協作設計工具。
+// 「游標群組建構」效果，靈感來自多人協作設計工具：
+// 一群游標把頁面一塊塊拉出來。每個元素在游標拖曳時，和選取框一起從左上角
+// 放大進場，內容與游標保持一體。
 //
-// 兩個階段：
-// 1. 開場（每個分頁工作階段只播一次）：首頁區塊先隱藏，一群以 AI 協作角色
-//    命名的游標同時出發，各自拉框、定尺寸，內容在框內淡入，最後游標收攏淡出。
-// 2. 捲動：內容不隱藏、不等待。區塊進場時，若有空閒游標就順手幫它畫一個
-//    選取框（附尺寸與角點），畫完就消失；忙不過來就略過，不會補畫舊的。
+// 粒度：
+// - 有背景或邊框的元素（卡片、終端機、標籤、按鈕）是「容器」，先蓋。
+// - 容器裡的標題、段落、媒體各自是一個任務，等容器蓋好才開始。
+// - 純排版用的外層不算，直接往下找。
 //
-// 所有游標與框都放在「頁面座標」圖層，捲動時黏在內容上。
-// 手機、減少動態效果的設定下完全不啟用。
+// 排程：游標池平行處理，挑「畫面內、依文件順序最前面、父容器已完成」的任務。
+// 每個區塊進入畫面 1.8 秒後，沒蓋完的直接彈出，絕不讓內容卡住。
+//
+// 每個分頁工作階段只播一次；手機、減少動態效果時完全不啟用。
+// 開場前的隱藏由 layout.js 的內嵌腳本在第一次繪製前處理，避免閃爍。
 
 import { useEffect } from "react";
 
-const AGENTS = [
-  { name: "鮭魚", color: "#F24E1E" },
-  { name: "Planner", color: "#A259FF" },
-  { name: "Architect", color: "#0D99FF" },
-  { name: "Coder", color: "#0ACF83" },
-  { name: "Tester", color: "#FFC700" },
-  { name: "Reviewer", color: "#E8467C" },
-];
+const DONE_KEY = "swarm-build-done";
+const MAX_CURSORS = 24;
+const BLOCK_DEADLINE = 1800;
 
-const INTRO_KEY = "swarm-intro-done";
-const MAX_SCROLL_AGENTS = 2; // 捲動階段同時最多幾個游標在畫
+const ARROW =
+  "M3 2.2 L3 17.6 L7.1 13.7 L9.8 19.8 L12.6 18.6 L9.9 12.6 L15.6 12.6 Z";
 
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
 
-// 只把「看得到的東西」算進範圍：文字、媒體，以及有邊框或背景的元素（卡片、按鈕）。
-// 純排版用的外層容器常常是整列寬，算進來框會比內容寬很多。
-function visibleBounds(el) {
-  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
-  const add = (rc) => {
-    if (!rc.width || !rc.height) return;
-    l = Math.min(l, rc.left);
-    t = Math.min(t, rc.top);
-    r = Math.max(r, rc.right);
-    b = Math.max(b, rc.bottom);
-  };
-  const range = document.createRange();
-  const walk = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      if (node.textContent.trim()) {
-        range.selectNodeContents(node);
-        add(range.getBoundingClientRect());
-      }
-      return;
+const isBoxed = (cs) =>
+  parseFloat(cs.borderTopWidth) > 0 ||
+  parseFloat(cs.borderLeftWidth) > 0 ||
+  (cs.backgroundColor !== "rgba(0, 0, 0, 0)" && cs.backgroundColor !== "transparent") ||
+  cs.backgroundImage !== "none";
+const MEDIA = /^(IMG|VIDEO|CANVAS|svg|SVG)$/;
+
+// 子節點是否全是文字或行內元素（也就是一段「文字區塊」）
+function isTextBlock(el) {
+  let hasText = false;
+  for (const n of el.childNodes) {
+    if (n.nodeType === Node.TEXT_NODE) {
+      if (n.textContent.trim()) hasText = true;
+      continue;
     }
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-    const cs = getComputedStyle(node);
-    if (cs.display === "none" || cs.visibility === "hidden") return;
-    const tag = node.tagName;
-    const boxed =
-      parseFloat(cs.borderTopWidth) > 0 ||
-      parseFloat(cs.borderLeftWidth) > 0 ||
-      (cs.backgroundColor !== "rgba(0, 0, 0, 0)" && cs.backgroundColor !== "transparent") ||
-      cs.backgroundImage !== "none";
-    if (boxed || /^(IMG|SVG|VIDEO|CANVAS|svg)$/.test(tag)) {
-      add(node.getBoundingClientRect());
-      if (!boxed) return; // 媒體不用再往下找
-    }
-    node.childNodes.forEach(walk);
-  };
-  el.childNodes.forEach(walk);
-  return l === Infinity ? el.getBoundingClientRect() : { left: l, top: t, width: r - l, height: b - t };
+    if (n.nodeType !== Node.ELEMENT_NODE) continue;
+    if (n.tagName === "BR") continue;
+    const d = getComputedStyle(n).display;
+    if (!/^inline/.test(d)) return false;
+    if (n.textContent.trim()) hasText = true;
+  }
+  return hasText;
 }
 
-// 量內容「最後停下」的位置（頁面座標）：
-// 暫停 Reveal 進場動畫的 translate／scale 再量，量完還原。
-function measure(el) {
-  const st = el.style;
-  const saved = [st.transition, st.translate, st.scale, st.transform];
-  st.transition = "none";
-  st.translate = "none";
-  st.scale = "none";
-  st.transform = "none";
-  const r = visibleBounds(el);
-  [, st.translate, st.scale, st.transform] = saved;
-  el.getBoundingClientRect();
-  st.transition = saved[0];
-  const pad = 8;
-  return {
-    left: r.left + window.scrollX - pad,
-    top: r.top + window.scrollY - pad,
-    width: r.width + pad * 2,
-    height: r.height + pad * 2,
-    w: Math.round(r.width),
-    h: Math.round(r.height),
+// 把一個 Reveal 區塊拆成任務樹
+function collectTasks(block) {
+  const tasks = [];
+  const walk = (el, parent) => {
+    for (const child of el.children) {
+      const cs = getComputedStyle(child);
+      // 不看 visibility：開場前整個區塊是 hidden，子元素都會繼承
+      if (cs.display === "none") continue;
+      const r = child.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      const media = MEDIA.test(child.tagName);
+      const text = !media && isTextBlock(child);
+      const boxed = isBoxed(cs);
+      if (media || text) {
+        tasks.push({ el: child, parent, kind: boxed || media ? "box" : "text" });
+        continue;
+      }
+      if (boxed) {
+        const t = { el: child, parent, kind: "box" };
+        tasks.push(t);
+        walk(child, t);
+        continue;
+      }
+      walk(child, parent);
+    }
   };
+  walk(block, null);
+  return tasks;
 }
 
 export default function SwarmBuild() {
   useEffect(() => {
+    const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || window.innerWidth < 768) return;
-
-    let introDone = false;
+    let done = false;
     try {
-      introDone = sessionStorage.getItem(INTRO_KEY) === "1";
+      done = sessionStorage.getItem(DONE_KEY) === "1";
+    } catch {}
+    if (reduce || window.innerWidth < 768 || done) {
+      root.classList.remove("swarm-intro");
+      return;
+    }
+    try {
+      sessionStorage.setItem(DONE_KEY, "1");
     } catch {}
 
-    const root = document.documentElement;
-    const introTargets = [...document.querySelectorAll("#about [data-swarm]")];
-    if (!introDone) root.classList.add("swarm-intro");
-    const revealAll = () => {
-      introTargets.forEach((el) => el.classList.add("swarm-built"));
-      root.classList.remove("swarm-intro");
+    root.classList.add("swarm-on");
+    // 橫向捲動容器裡的區塊（例如文章卡片列）不套用：畫面外的卡片被容器裁掉，
+    // 永遠不會「進入畫面」，會一直藏著
+    const inHScroller = (el) => {
+      for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+        const ox = getComputedStyle(n).overflowX;
+        if ((ox === "auto" || ox === "scroll") && n.scrollWidth > n.clientWidth) return true;
+      }
+      return false;
     };
-    // 安全網：無論動畫發生什麼事，3 秒後首頁一定完整顯示
-    const safety = setTimeout(revealAll, 3000);
+    const blocks = [...document.querySelectorAll("[data-swarm]")]
+      .filter((el) => !inHScroller(el))
+      .map((el, i) => ({
+      el,
+      order: i,
+      tasks: [],
+      active: false,
+    }));
+    blocks.forEach((b) => {
+      b.el.classList.add("swarm-managed"); // 只有被接管的區塊關掉 Reveal 自己的動畫
+      b.tasks = collectTasks(b.el);
+      b.tasks.forEach((t) => {
+        t.block = b;
+        t.state = "pending";
+        t.el.classList.add("swarm-pending");
+      });
+    });
+    root.classList.remove("swarm-intro"); // 改由個別元素隱藏
 
     const layer = document.createElement("div");
     layer.className = "swarm-layer";
@@ -128,19 +144,6 @@ export default function SwarmBuild() {
     };
     follow();
 
-    // ---- 游標（頁面座標）
-    const cursors = AGENTS.map((a) => {
-      const el = document.createElement("div");
-      el.className = "swarm-cursor";
-      el.innerHTML = `<i style="--c:${a.color}"></i><span>${a.name}</span>`;
-      world.appendChild(el);
-      return { el, x: 0, y: 0, busy: false, color: a.color };
-    });
-    const place = (c) => {
-      c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
-    };
-    const show = (c, on) => c.el.classList.toggle("on", on);
-
     const animate = (dur, fn) =>
       new Promise((res) => {
         const s = performance.now();
@@ -153,131 +156,200 @@ export default function SwarmBuild() {
         requestAnimationFrame(step);
       });
 
-    const fly = (c, x, y, dur) => {
-      const sx = c.x, sy = c.y;
-      return animate(dur, (k) => {
-        const e = easeInOut(k);
-        c.x = sx + (x - sx) * e;
-        c.y = sy + (y - sy) * e;
-        place(c);
-      });
+    const t0 = performance.now();
+
+    // ---- 游標池
+    const cursors = [];
+    const getCursor = (x, y) => {
+      let c = cursors.find((k) => !k.busy);
+      if (!c && cursors.length < MAX_CURSORS) {
+        const el = document.createElement("div");
+        el.className = "swarm-cursor";
+        el.innerHTML = `<svg width="18" height="22" viewBox="0 0 18 22"><path d="${ARROW}"/></svg>`;
+        world.appendChild(el);
+        // 出生點：開場時從畫面中央一群散開；之後從畫面下緣、目標附近進場
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const sx = window.scrollX, sy = window.scrollY;
+        const intro = performance.now() - t0 < 1500;
+        c = intro
+          ? { x: sx + vw * 0.5 + rand(-60, 60), y: sy + vh * 0.42 + rand(-40, 40) }
+          : { x: clamp(x + rand(-160, 160), sx + 40, sx + vw - 40), y: sy + vh + 30 };
+        Object.assign(c, { el, busy: false, hideTimer: 0 });
+        cursors.push(c);
+      }
+      if (!c) return null;
+      c.busy = true;
+      clearTimeout(c.hideTimer);
+      c.el.classList.add("on");
+      return c;
+    };
+    const release = (c) => {
+      c.busy = false;
+      c.hideTimer = setTimeout(() => c.el.classList.remove("on"), 500);
+    };
+    const place = (c) => {
+      c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
     };
 
-    // 拉框：從左上拖到右下，尺寸標籤即時更新，完成後出現角點再淡出
-    const draw = async (c, r, dur) => {
+    // 元素完成：清掉動畫用的行內樣式
+    const finish = (t) => {
+      if (t.state === "done") return;
+      t.state = "done";
+      const st = t.el.style;
+      t.el.classList.remove("swarm-pending");
+      st.scale = "";
+      st.transformOrigin = "";
+      if (t.savedTransition !== undefined) st.transition = t.savedTransition;
+    };
+
+    // 元素「蓋好之後」的位置（頁面座標）。父容器可能還在放大中，
+    // 所以量到的位置要換算回縮放前：
+    // - 版面位置用 offsetLeft／offsetTop 鏈（不受 transform、scale 影響）
+    // - 文字範圍用 getBoundingClientRect 量，再除以目前的有效縮放比例
+    const finalRect = (t) => {
+      const el = t.el;
+      const er = el.getBoundingClientRect();
+      if (!(el instanceof HTMLElement)) {
+        // SVG 沒有 offset 系列屬性，只能直接量
+        return { left: er.left + window.scrollX, top: er.top + window.scrollY, w: er.width, h: er.height, origin: "0 0" };
+      }
+      let x = 0, y = 0;
+      for (let n = el; n; n = n.offsetParent) {
+        x += n.offsetLeft;
+        y += n.offsetTop;
+      }
+      const ow = el.offsetWidth, oh = el.offsetHeight;
+      const k = ow ? er.width / ow : 1; // 祖先縮放造成的有效比例
+      if (t.kind === "text" && k > 0) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const tr = range.getBoundingClientRect();
+        if (tr.width && tr.height) {
+          const dx = (tr.left - er.left) / k, dy = (tr.top - er.top) / k;
+          return { left: x + dx, top: y + dy, w: tr.width / k, h: tr.height / k, origin: `${dx}px ${dy}px` };
+        }
+      }
+      return { left: x, top: y, w: ow, h: oh, origin: "0 0" };
+    };
+
+    // ---- 一個任務：飛到左上角 → 拖到右下角，元素和框一起放大
+    const run = async (t, c) => {
+      // 文字量實際文字範圍（標題、段落的元素常常比文字寬），
+      // 放大原點對齊文字起點，框和文字才會一起長大
+      const { left, top, w, h, origin } = finalRect(t);
+
+      const dist = Math.hypot(left - c.x, top - c.y);
+      const fx = c.x, fy = c.y;
+      await animate(clamp(dist * 0.4, 140, 340), (k) => {
+        const e = easeInOut(k);
+        c.x = fx + (left - fx) * e;
+        c.y = fy + (top - fy) * e;
+        place(c);
+      });
+      if (t.state === "done") return; // 保底已經把它彈出了
+
       const box = document.createElement("div");
-      box.className = "swarm-box";
-      box.style.left = `${r.left}px`;
-      box.style.top = `${r.top}px`;
-      box.style.setProperty("--c", c.color);
-      box.innerHTML = `<b></b><b></b><b></b><b></b><span class="swarm-badge"></span>`;
+      box.className = `swarm-box swarm-${t.kind}`;
+      box.style.left = `${left}px`;
+      box.style.top = `${top}px`;
+      const showBadge = t.kind === "box" && w > 90 && h > 28;
+      box.innerHTML = `<b></b><b></b><b></b><b></b>${showBadge ? '<span class="swarm-badge"></span>' : ""}`;
       const badge = box.querySelector(".swarm-badge");
       world.appendChild(box);
-      await animate(dur, (k) => {
-        const e = easeOut(k);
-        box.style.width = `${r.width * e}px`;
-        box.style.height = `${r.height * e}px`;
-        badge.textContent = `${Math.round(r.w * e)} × ${Math.round(r.h * e)}`;
-        c.x = r.left + r.width * e;
-        c.y = r.top + r.height * e;
+
+      const st = t.el.style;
+      t.savedTransition = st.transition;
+      st.transition = "none";
+      st.transformOrigin = origin;
+      st.scale = "0.02";
+      t.el.classList.remove("swarm-pending");
+      t.state = "building";
+
+      await animate(clamp(180 + Math.sqrt(w * h) * 0.6, 220, 520), (k) => {
+        const e = Math.max(easeOut(k), 0.02);
+        if ((t.progress || 0) <= 0.55 && e > 0.55) queueMicrotask(pump);
+        t.progress = e;
+        if (t.state !== "done") st.scale = String(e);
+        box.style.width = `${w * e}px`;
+        box.style.height = `${h * e}px`;
+        if (badge) badge.textContent = `${Math.round(w * e)} × ${Math.round(h * e)}`;
+        c.x = left + w * e;
+        c.y = top + h * e;
         place(c);
       });
+      finish(t);
       box.classList.add("done");
-      return box;
+      setTimeout(() => box.classList.add("out"), 260);
+      setTimeout(() => box.remove(), 700);
     };
-    const dismiss = (box, delay) =>
-      setTimeout(() => {
-        box.classList.add("out");
-        setTimeout(() => box.remove(), 500);
-      }, delay);
 
-    // ---- 第 1 階段：開場
-    const runIntro = async () => {
-      const cx = window.innerWidth / 2 + window.scrollX;
-      const cy = window.innerHeight * 0.45 + window.scrollY;
-      cursors.forEach((c, i) => {
-        const a = (i / cursors.length) * Math.PI * 2;
-        c.x = cx + Math.cos(a) * 26;
-        c.y = cy + Math.sin(a) * 26;
-        place(c);
-        show(c, true);
-      });
-      await sleep(120);
+    // ---- 排程
+    const ready = (t) =>
+      t.state === "pending" &&
+      t.block.active &&
+      // 父容器拉到一半多就可以開工，不必等它完全蓋好
+      (!t.parent || t.parent.state === "done" || (t.parent.progress || 0) > 0.55);
+    const all = () => blocks.flatMap((b) => b.tasks);
+    let pumping = false;
+    const pump = () => {
+      if (pumping || !alive) return;
+      pumping = true;
+      for (const t of all()) {
+        if (!ready(t)) continue;
+        const r = t.el.getBoundingClientRect();
+        const c = getCursor(r.left + window.scrollX, r.top + window.scrollY);
+        if (!c) break;
+        t.state = "claimed";
+        run(t, c).then(() => {
+          finish(t);
+          release(c);
+          pump();
+        });
+      }
+      pumping = false;
+    };
 
-      // 每個區塊分給一個游標；區塊比游標多時，同一個游標依序處理
-      const lanes = cursors.map(() => []);
-      introTargets.forEach((el, i) => lanes[i % cursors.length].push(el));
-      await Promise.all(
-        lanes.map(async (list, i) => {
-          const c = cursors[i];
-          await sleep(i * 70);
-          for (const el of list) {
-            const r = measure(el);
-            await fly(c, r.left, r.top, 480);
-            const box = await draw(c, r, 520);
-            el.classList.add("swarm-built");
-            dismiss(box, 450);
-          }
-        })
+    const timers = [];
+    const activate = (b) => {
+      if (b.active) return;
+      b.active = true;
+      timers.push(
+        setTimeout(() => {
+          b.tasks.forEach((t) => {
+            if (t.state === "pending" || t.state === "claimed") {
+              t.el.classList.add("swarm-pop");
+              finish(t);
+            }
+          });
+          pump();
+        }, BLOCK_DEADLINE)
       );
-
-      // 收攏到主角游標旁，一起淡出
-      const lead = cursors[0];
-      await Promise.all(cursors.map((c, i) => fly(c, lead.x + (i ? 14 : 0), lead.y + i * 3, 420)));
-      cursors.forEach((c) => show(c, false));
-      clearTimeout(safety);
-      revealAll();
-      try {
-        sessionStorage.setItem(INTRO_KEY, "1");
-      } catch {}
+      pump();
     };
 
-    // ---- 第 2 階段：捲動時順手標註
-    let active = 0;
-    const annotate = async (el) => {
-      const c = cursors.find((x) => !x.busy);
-      if (!c || active >= MAX_SCROLL_AGENTS) return; // 忙不過來就略過
-      c.busy = true;
-      active++;
-      const r = measure(el);
-      c.x = r.left - 60;
-      c.y = r.top - 40;
-      place(c);
-      show(c, true);
-      await fly(c, r.left, r.top, 380);
-      const box = await draw(c, r, 520);
-      dismiss(box, 500);
-      await sleep(250);
-      show(c, false);
-      await sleep(300);
-      c.busy = false;
-      active--;
-    };
-
-    let io;
-    const startScroll = () => {
-      io = new IntersectionObserver(
-        (entries) =>
-          entries.forEach((en) => {
-            if (!en.isIntersecting) return;
-            io.unobserve(en.target);
-            annotate(en.target);
-          }),
-        { threshold: 0.4 }
-      );
-      document.querySelectorAll("[data-swarm]").forEach((el) => {
-        if (!el.closest("#about")) io.observe(el);
-      });
-    };
-
-    (introDone ? Promise.resolve(revealAll()) : runIntro()).then(() => alive && startScroll());
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          const b = blocks.find((x) => x.el === en.target);
+          if (b) activate(b);
+        }),
+      { rootMargin: "0px" }
+    );
+    blocks.forEach((b) => io.observe(b.el));
 
     return () => {
       alive = false;
-      clearTimeout(safety);
-      io?.disconnect();
+      io.disconnect();
+      timers.forEach(clearTimeout);
+      all().forEach((t) => {
+        finish(t);
+        t.el.classList.remove("swarm-pop");
+      });
       layer.remove();
-      revealAll();
+      blocks.forEach((b) => b.el.classList.remove("swarm-managed"));
+      root.classList.remove("swarm-on");
     };
   }, []);
 
