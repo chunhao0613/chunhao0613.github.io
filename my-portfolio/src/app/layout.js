@@ -56,7 +56,7 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html
+    <html suppressHydrationWarning
       lang="zh-TW"
       suppressHydrationWarning
       className={`${nanifont.variable} ${geistMono.variable} h-full antialiased`}

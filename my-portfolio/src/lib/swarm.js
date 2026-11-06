@@ -13,5 +13,6 @@ export const swarmKey = (pathname) => {
 
 // 第一次繪製前執行（放在 <head>）：這一頁還沒播過就先把 [data-swarm] 區塊藏起來，
 // 避免內容先閃一下再被藏。3.5 秒後無論如何都移除，就算 JS 沒載入成功，內容也不會一直藏著。
-// 條件必須與 SwarmBuild 一致。
-export const swarmBootScript = `try{var d=document.documentElement,p=location.pathname.replace(/\\.html$/,"").replace(/\\/+$/,"");if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&sessionStorage.getItem("swarm:"+(p||"/"))!=="1"){d.classList.add("swarm-intro");setTimeout(function(){d.classList.remove("swarm-intro")},3500)}}catch(e){}`;
+// 條件必須與 SwarmBuild 一致。重新整理（reload）視為想重看，先清掉這一頁的已播紀錄。
+// 同時套用記住的淺色主題，避免文章頁先閃深色。
+export const swarmBootScript = `try{var d=document.documentElement;try{if(localStorage.getItem("theme")==="light")d.dataset.theme="light"}catch(e){}var nv=performance.getEntriesByType("navigation")[0],p=location.pathname.replace(/\\.html$/,"").replace(/\\/+$/,"");if(nv&&nv.type==="reload")sessionStorage.removeItem("swarm:"+(p||"/"));if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&sessionStorage.getItem("swarm:"+(p||"/"))!=="1"){d.classList.add("swarm-intro");setTimeout(function(){d.classList.remove("swarm-intro")},3500)}}catch(e){}`;

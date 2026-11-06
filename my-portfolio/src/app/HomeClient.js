@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useLayoutEffect, useEffect, useRef, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { Menu, X, Activity, Sun, Moon } from "lucide-react";
 import SwarmBuild from "./components/SwarmBuild";
@@ -129,6 +129,14 @@ export function HomeClient({ home, projects, posts }) {
   const menuItems = useMemo(() => buildMenu(home.sections), [home]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  // 主題記在 localStorage，並同步到 <html data-theme>：文章頁也讀同一個屬性
+  useLayoutEffect(() => {
+    if (document.documentElement.dataset.theme === "light") setIsDarkMode(false);
+  }, []);
+  const applyTheme = useCallback((dark) => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch {}
+  }, []);
   const sidebarOpenTimerRef = useRef(null);
   const sidebarCloseTimerRef = useRef(null);
   const scrollProgressRef = useRef(null);
@@ -236,7 +244,7 @@ export function HomeClient({ home, projects, posts }) {
   const toggleTheme = useCallback((e) => {
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!document.startViewTransition || calm) {
-      setIsDarkMode((prev) => !prev);
+      setIsDarkMode((prev) => (applyTheme(!prev), !prev));
       return;
     }
 
@@ -274,7 +282,7 @@ export function HomeClient({ home, projects, posts }) {
       // 但 React 的 setState 是非同步的 —— 不強制同步 flush 的話，拍到的
       // 新快照與舊快照完全相同，波動掃過去不會有任何變化，等 transition
       // 結束 React 才 re-render，於是整頁一次翻過去。
-      flushSync(() => setIsDarkMode((prev) => !prev));
+      flushSync(() => setIsDarkMode((prev) => (applyTheme(!prev), !prev)));
     });
 
     transition.ready
@@ -297,7 +305,7 @@ export function HomeClient({ home, projects, posts }) {
       // 主題本身已經切換完成，這裡只是沒有動畫，不需要處理，但必須接住，
       // 否則會產生 unhandled rejection。
       .catch(() => {});
-  }, []);
+  }, [applyTheme]);
 
   return (
     <div
@@ -382,34 +390,6 @@ export function HomeClient({ home, projects, posts }) {
           animation: ripple-click 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
         }
 
-        [data-theme="light"].bg-zinc-950,
-        [data-theme="light"] .bg-zinc-950 { background-color: #f8fafc; }
-        [data-theme="light"] .bg-zinc-900 { background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        [data-theme="light"] .bg-zinc-900\\/90 { background-color: rgba(255, 255, 255, 0.95); }
-        [data-theme="light"] .bg-zinc-900\\/80 { background-color: rgba(255, 255, 255, 0.85); }
-        [data-theme="light"] .bg-zinc-900\\/30 { background-color: rgba(255,255,255,0.6); }
-        [data-theme="light"] .bg-zinc-900\\/50, 
-        [data-theme="light"] .bg-zinc-900\\/40 { background-color: rgba(255,255,255,0.7); }
-        [data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
-        [data-theme="light"] .text-zinc-100 { color: #020617; }
-        [data-theme="light"].text-zinc-200, [data-theme="light"] .text-zinc-200 { color: #020617; }
-        [data-theme="light"].text-zinc-300, [data-theme="light"] .text-zinc-300 { color: #0f172a; }
-        [data-theme="light"].text-zinc-400, [data-theme="light"] .text-zinc-400 { color: #1e293b; }
-        [data-theme="light"].text-zinc-500, [data-theme="light"] .text-zinc-500 { color: #334155; }
-        [data-theme="light"].text-zinc-600, [data-theme="light"] .text-zinc-600 { color: #475569; }
-        [data-theme="light"].text-zinc-700, [data-theme="light"] .text-zinc-700 { color: #64748b; }
-        [data-theme="light"] .border-zinc-800 { border-color: #cbd5e1; }
-        [data-theme="light"] .border-zinc-800\\/50 { border-color: rgba(203, 213, 225, 0.5); }
-        [data-theme="light"] .border-zinc-900 { border-color: #94a3b8; }
-        [data-theme="light"] .border-zinc-700 { border-color: #64748b; }
-        [data-theme="light"] .bg-white { background-color: #0f172a; color: #ffffff; }
-        [data-theme="light"] .text-black { color: #ffffff; }
-        [data-theme="light"] .hover\\:text-white:hover,
-        [data-theme="light"] .group:hover .group-hover\\:text-white { color: #020617; }
-        [data-theme="light"] .group:hover .group-hover\\:text-zinc-200 { color: #020617; }
-        [data-theme="light"] .hover\\:bg-zinc-800:hover,
-        [data-theme="light"] .group:hover .group-hover\\:bg-zinc-800 { background-color: #f1f5f9; }
-        [data-theme="light"] .animate-ripple-click { border-color: rgba(113, 113, 122, 0.35); }
 
       `}</style>
 
