@@ -484,3 +484,9 @@ body {
 .swarm-log .v-dup { --vh: 80; }
 .swarm-log .v-paint { --vh: 160; }
 .swarm-log .v-guide { --vh: 30; }
+
+/* 手機：建造紀錄縮小貼底，只留最近幾行 */
+@media (max-width: 767px) {
+  .swarm-log { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 8px 10px; font-size: 9.5px; }
+  .swarm-log li:nth-last-child(n + 4) { display: none; }
+}

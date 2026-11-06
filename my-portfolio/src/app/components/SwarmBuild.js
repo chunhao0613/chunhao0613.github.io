@@ -158,7 +158,10 @@ const snippet = (el) => {
 export default function SwarmBuild({ mode: variant = "full" }) {
   // useLayoutEffect：站內換頁時在繪製前就把元素藏好，不會先閃一下
   useLayoutEffect(() => {
-    const features = MODES[variant] || MODES.full;
+    const small = window.innerWidth < SWARM_MIN_WIDTH;
+    // 手機：一律精簡模式（不畫尺規、參考線、量測），鼠標也少一點
+    const features = small ? MODES.light : MODES[variant] || MODES.full;
+    const maxCursors = small ? 12 : MAX_CURSORS;
     const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const key = swarmKey(window.location.pathname);
@@ -166,7 +169,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     try {
       played = sessionStorage.getItem(key) === "1";
     } catch {}
-    if (reduce || window.innerWidth < SWARM_MIN_WIDTH || played) {
+    if (reduce || played) {
       root.classList.remove("swarm-intro");
       return;
     }
@@ -384,7 +387,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     const cursors = [];
     const getCursor = (x, y) => {
       let c = cursors.find((k) => !k.busy);
-      if (!c && cursors.length < MAX_CURSORS) {
+      if (!c && cursors.length < maxCursors) {
         const el = document.createElement("div");
         el.className = "swarm-cursor";
         el.dataset.mode = "arrow";
