@@ -47,6 +47,8 @@ function readPost(filename) {
     award: data.award ?? null,
     notes: data.notes ?? null,
     certificates: data.certificates ?? null,
+    // 舊網址（文章改名時填舊的檔名），打開舊網址會自動轉到新網址
+    aliases: Array.isArray(data.aliases) ? data.aliases.map(String) : [],
     body: content.trim(),
   };
 }
@@ -59,6 +61,11 @@ export function getAllPosts() {
     .filter((f) => f.endsWith(".md") && f !== "README.md" && !f.startsWith("_"))
     .map(readPost)
     .sort((a, b) => b.date.localeCompare(a.date)); // 新的在前
+}
+
+// 舊網址 → 新文章；不是舊網址就回傳 null
+export function getAliasTarget(slug) {
+  return getAllPosts().find((p) => p.aliases.includes(slug)) ?? null;
 }
 
 export function getPost(slug) {

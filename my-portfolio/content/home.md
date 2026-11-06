@@ -11,8 +11,8 @@ sections:
       - block: hero
         status: Available for new opportunities
         statusTone: green
-        greeting: Hi, 我是
-        name: 余駿豪
+        greeting: Hi, I'm
+        name: Hugo
         nickname: 鮭魚
         role: 軟體開發者 / MCU-CSIE
         intro: 我對開發一直保持好奇，也習慣把想法做成能驗證的成果。擅長把複雜技術整理成好閱讀的架構與交接文件，包含嚴謹的 SRS 與系統分析。技術範圍從 AI RAG 應用到區塊鏈智慧家居，持續把點子落地成能解決真實問題的方案。
@@ -39,7 +39,7 @@ sections:
     title: 個人專案
     blocks:
       - block: featured
-        project: novacut
+        project: ezicut
         eyebrow: 精選專案
       - block: steps
         title: 我和 AI 的協作方式

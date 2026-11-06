@@ -484,3 +484,40 @@ body {
 .swarm-log .v-dup { --vh: 80; }
 .swarm-log .v-paint { --vh: 160; }
 .swarm-log .v-guide { --vh: 30; }
+
+/* 手機：建造紀錄縮小貼底，只留最近幾行 */
+@media (max-width: 767px) {
+  .swarm-log { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 8px 10px; font-size: 9.5px; }
+  .swarm-log li:nth-last-child(n + 4) { display: none; }
+}
+
+
+/* 淺色主題：放在全域，首頁與文章頁共用（<html data-theme> 由開場腳本依 localStorage 設定） */
+[data-theme="light"].bg-zinc-950,
+[data-theme="light"] .bg-zinc-950 { background-color: #f8fafc; }
+[data-theme="light"] .bg-zinc-900 { background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .bg-zinc-900\/90 { background-color: rgba(255, 255, 255, 0.95); }
+[data-theme="light"] .bg-zinc-900\/80 { background-color: rgba(255, 255, 255, 0.85); }
+[data-theme="light"] .bg-zinc-900\/30 { background-color: rgba(255,255,255,0.6); }
+[data-theme="light"] .bg-zinc-900\/50,
+[data-theme="light"] .bg-zinc-900\/40 { background-color: rgba(255,255,255,0.7); }
+[data-theme="light"] .bg-zinc-800 { background-color: #e2e8f0; }
+[data-theme="light"] .text-zinc-100 { color: #020617; }
+[data-theme="light"].text-zinc-200, [data-theme="light"] .text-zinc-200 { color: #020617; }
+[data-theme="light"].text-zinc-300, [data-theme="light"] .text-zinc-300 { color: #0f172a; }
+[data-theme="light"].text-zinc-400, [data-theme="light"] .text-zinc-400 { color: #1e293b; }
+[data-theme="light"].text-zinc-500, [data-theme="light"] .text-zinc-500 { color: #334155; }
+[data-theme="light"].text-zinc-600, [data-theme="light"] .text-zinc-600 { color: #475569; }
+[data-theme="light"].text-zinc-700, [data-theme="light"] .text-zinc-700 { color: #64748b; }
+[data-theme="light"] .border-zinc-800 { border-color: #cbd5e1; }
+[data-theme="light"] .border-zinc-800\/50 { border-color: rgba(203, 213, 225, 0.5); }
+[data-theme="light"] .border-zinc-900 { border-color: #94a3b8; }
+[data-theme="light"] .border-zinc-700 { border-color: #64748b; }
+[data-theme="light"] .bg-white { background-color: #0f172a; color: #ffffff; }
+[data-theme="light"] .text-black { color: #ffffff; }
+[data-theme="light"] .hover\:text-white:hover,
+[data-theme="light"] .group:hover .group-hover\:text-white { color: #020617; }
+[data-theme="light"] .group:hover .group-hover\:text-zinc-200 { color: #020617; }
+[data-theme="light"] .hover\:bg-zinc-800:hover,
+[data-theme="light"] .group:hover .group-hover\:bg-zinc-800 { background-color: #f1f5f9; }
+[data-theme="light"] .animate-ripple-click { border-color: rgba(113, 113, 122, 0.35); }

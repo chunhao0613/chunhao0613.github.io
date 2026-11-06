@@ -197,7 +197,7 @@ export function FeaturedBlock({ block, projects }) {
     "group relative block bg-zinc-950 aspect-[16/10] lg:aspect-auto overflow-hidden border-b lg:border-b-0 lg:border-r border-zinc-800";
   return (
     <Reveal type="fade-up">
-      <article className="mb-24 rounded-3xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
+      <article className="mb-16 md:mb-24 rounded-3xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
         <div className="grid lg:grid-cols-[1.1fr_1fr]">
           {coverHref ? (
             <SmartLink href={coverHref} className={coverClass}>
@@ -229,28 +229,35 @@ export function FeaturedBlock({ block, projects }) {
                 </span>
               ))}
             </div>
-            <div className="mt-auto flex flex-wrap gap-3">
-              {p.links.map((l) => (
-                <SmartLink
-                  key={l.href}
-                  href={l.href}
-                  className={
-                    l.style === "primary"
-                      ? "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 text-sm font-medium hover:bg-white transition-colors"
-                      : "inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors"
-                  }
-                >
-                  {l.icon ? (
-                    <>
-                      <NamedIcon name={l.icon} size={16} /> {l.label}
-                    </>
-                  ) : (
-                    <>
-                      {l.label} <ArrowUpRight size={16} />
-                    </>
-                  )}
-                </SmartLink>
-              ))}
+            {/* 主要按鈕自成一列、次要按鈕排在下一列：主次分明，也不會因為主要按鈕的字長被擠到換行 */}
+            <div className="mt-auto flex flex-col items-start gap-3">
+              {[p.links.filter((l) => l.style === "primary"), p.links.filter((l) => l.style !== "primary")]
+                .filter((row) => row.length)
+                .map((row, r) => (
+                  <div key={r} className="flex flex-wrap gap-3">
+                    {row.map((l) => (
+                      <SmartLink
+                        key={l.href}
+                        href={l.href}
+                        className={
+                          l.style === "primary"
+                            ? "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 text-sm font-medium hover:bg-white transition-colors"
+                            : "inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors"
+                        }
+                      >
+                        {l.icon ? (
+                          <>
+                            <NamedIcon name={l.icon} size={16} /> {l.label}
+                          </>
+                        ) : (
+                          <>
+                            {l.label} <ArrowUpRight size={16} />
+                          </>
+                        )}
+                      </SmartLink>
+                    ))}
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -264,7 +271,7 @@ export function FeaturedBlock({ block, projects }) {
 export function StepsBlock({ block }) {
   return (
     <Reveal type="fade-up">
-      <div className="mb-32">
+      <div className="mb-20 md:mb-32">
         {block.title ? <h3 className="text-2xl font-bold mb-3">{block.title}</h3> : null}
         {block.intro ? <p className="text-zinc-400 mb-10 max-w-3xl leading-relaxed">{block.intro}</p> : null}
         <ol className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -283,6 +290,55 @@ export function StepsBlock({ block }) {
 
 // ---------------------------------------------------------------- projects
 
+// 專案卡。wide：奇數張時的最後一張，在寬螢幕佔滿整列，左邊是介紹、右邊是角色、標籤與連結，
+// 避免右半邊空一塊。一般卡片的 DOM 維持不變（建造效果靠 class 判斷重複元件）
+function ProjectCard({ project, wide }) {
+  const head = (
+    <>
+      <p className="text-zinc-500 font-mono text-xs mb-3 border-l-2 border-zinc-700 pl-3">{project.period}</p>
+      <h4 className="text-2xl font-bold mb-3 text-zinc-100">{project.title}</h4>
+      {project.positioning ? <p className="text-zinc-200 mb-3 leading-relaxed">{project.positioning}</p> : null}
+      {project.summary ? <p className="text-sm text-zinc-400 mb-4 leading-relaxed">{project.summary}</p> : null}
+    </>
+  );
+  const tail = (
+    <>
+      {project.role ? (
+        <div className="text-sm text-zinc-400 mb-6 leading-relaxed border-l-2 border-zinc-600 pl-3">
+          <span className="font-mono text-xs text-zinc-500 block mb-1">我的角色</span>
+          <Paragraphs text={project.role} />
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {project.tags.map((tag) => (
+          <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">{tag}</span>
+        ))}
+      </div>
+      <div className="mt-auto flex flex-wrap gap-3">
+        {project.links.map((link) => (
+          <SmartLink key={link.href} href={link.href} className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
+            {link.label} <ArrowUpRight size={14} />
+          </SmartLink>
+        ))}
+      </div>
+    </>
+  );
+  if (!wide) {
+    return (
+      <article className="h-full flex flex-col p-8 rounded-3xl border border-zinc-800 bg-zinc-900/30">
+        {head}
+        {tail}
+      </article>
+    );
+  }
+  return (
+    <article className="h-full flex flex-col md:grid md:grid-cols-2 md:gap-x-10 p-8 rounded-3xl border border-zinc-800 bg-zinc-900/30">
+      <div>{head}</div>
+      <div className="flex flex-col">{tail}</div>
+    </article>
+  );
+}
+
 export function ProjectsBlock({ block, projects, featured = [] }) {
   // 已經被精選的專案不重複列出；block.only 可指定只列哪些（styleguide 用）
   const list = projects.filter((p) => (block.only ? block.only.includes(p.slug) : !featured.includes(p.slug)));
@@ -295,34 +351,14 @@ export function ProjectsBlock({ block, projects, featured = [] }) {
         </Reveal>
       ) : null}
       <div className="grid md:grid-cols-2 gap-6">
-        {list.map((project) => (
-          <Reveal key={project.slug} type="fade-up">
-            <article className="h-full flex flex-col p-8 rounded-3xl border border-zinc-800 bg-zinc-900/30">
-              <p className="text-zinc-500 font-mono text-xs mb-3 border-l-2 border-zinc-700 pl-3">{project.period}</p>
-              <h4 className="text-2xl font-bold mb-3 text-zinc-100">{project.title}</h4>
-              {project.positioning ? <p className="text-zinc-200 mb-3 leading-relaxed">{project.positioning}</p> : null}
-              {project.summary ? <p className="text-sm text-zinc-400 mb-4 leading-relaxed">{project.summary}</p> : null}
-              {project.role ? (
-                <div className="text-sm text-zinc-400 mb-6 leading-relaxed border-l-2 border-zinc-600 pl-3">
-                  <span className="font-mono text-xs text-zinc-500 block mb-1">我的角色</span>
-                  <Paragraphs text={project.role} />
-                </div>
-              ) : null}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="text-xs px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-300 font-mono">{tag}</span>
-                ))}
-              </div>
-              <div className="mt-auto flex flex-wrap gap-3">
-                {project.links.map((link) => (
-                  <SmartLink key={link.href} href={link.href} className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
-                    {link.label} <ArrowUpRight size={14} />
-                  </SmartLink>
-                ))}
-              </div>
-            </article>
-          </Reveal>
-        ))}
+        {list.map((project, i) => {
+          const wide = list.length % 2 === 1 && i === list.length - 1;
+          return (
+            <Reveal key={project.slug} type="fade-up" className={wide ? "md:col-span-2" : ""}>
+              <ProjectCard project={project} wide={wide} />
+            </Reveal>
+          );
+        })}
       </div>
     </>
   );
@@ -465,7 +501,7 @@ export function ContactBlock({ block }) {
       ))}
 
       {chips.length ? (
-        <div className="mt-24 flex justify-center gap-6 relative z-10">
+        <div className="mt-16 md:mt-24 flex justify-center gap-6 relative z-10">
           {chips.map((b) => (
             <SmartLink
               key={b.href}
@@ -505,15 +541,15 @@ export function HomeSection({ section, projects, posts, featured }) {
   const first = section.blocks[0]?.block;
   const className =
     first === "hero"
-      ? "min-h-screen flex items-center border-b border-zinc-900 pt-20"
+      ? "min-h-screen flex items-center border-b border-zinc-900 pt-28 pb-16 md:pt-20 md:pb-0"
       : first === "contact"
-        ? "py-32 text-center relative"
-        : "py-32 border-b border-zinc-900 relative";
+        ? "py-20 md:py-32 text-center relative"
+        : "py-20 md:py-32 border-b border-zinc-900 relative";
   return (
     <section id={section.id} className={className}>
       {section.title ? (
         <Reveal>
-          <div className="flex items-center gap-3 mb-20">
+          <div className="flex items-center gap-3 mb-12 md:mb-20">
             <NamedIcon name={section.icon} size={24} className="text-zinc-500" />
             <DeconstructTitle className="text-3xl md:text-4xl font-bold tracking-tight">{section.title}</DeconstructTitle>
           </div>
