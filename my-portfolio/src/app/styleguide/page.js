@@ -16,7 +16,7 @@ export default function Styleguide() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans pt-20 pb-20">
       <div className="max-w-5xl mx-auto px-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors mb-10">
+        <Link href="/" className="inline-flex items-center gap-2 py-2 -my-2 text-sm text-zinc-400 hover:text-white transition-colors mb-10">
           <ArrowLeft size={16} /> 回首頁
         </Link>
         <header className="mb-12 border-b border-zinc-800 pb-8">

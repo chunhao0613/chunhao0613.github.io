@@ -19,7 +19,7 @@ export function BackButton() {
     <button
       type="button"
       onClick={handleBack}
-      className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-12 transition-colors"
+      className="inline-flex items-center gap-2 py-2 -my-2 text-zinc-400 hover:text-white mb-12 transition-colors"
     >
       <ArrowLeft size={18} />
       回到上一頁

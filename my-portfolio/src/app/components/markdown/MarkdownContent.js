@@ -51,7 +51,7 @@ const base = {
         {children}
       </code>
     ) : (
-      <code className="bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 text-sm font-mono text-zinc-300" {...props}>
+      <code className="bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 text-sm font-mono text-zinc-300 [overflow-wrap:anywhere]" {...props}>
         {children}
       </code>
     ),

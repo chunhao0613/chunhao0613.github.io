@@ -44,9 +44,10 @@ function Paragraphs({ text }) {
   ));
 }
 
-// terminal 的資料：YAML 物件 → JSON 樣式，key 與字串值各自上色
-function JsonValue({ value, depth, keyClass, valueClass }) {
-  const pad = "  ".repeat(depth);
+// terminal 的資料：YAML 物件 → JSON 樣式，key 與字串值各自上色。
+// 每個 key 一行（block），太長時折行並「懸掛縮排」，手機上不會被切掉、折行後仍對齊。
+// trail 是緊接在值後面的逗號，要跟著巢狀物件的右括號走，不能被擠到下一行。
+function JsonValue({ value, depth, keyClass, valueClass, trail = "" }) {
   if (Array.isArray(value)) {
     return (
       <>
@@ -57,7 +58,7 @@ function JsonValue({ value, depth, keyClass, valueClass }) {
             <JsonValue value={v} depth={depth} keyClass={keyClass} valueClass={valueClass} />
           </React.Fragment>
         ))}
-        ]
+        ]{trail}
       </>
     );
   }
@@ -65,24 +66,42 @@ function JsonValue({ value, depth, keyClass, valueClass }) {
     const entries = Object.entries(value);
     return (
       <>
-        {"{\n"}
-        {entries.map(([k, v], i) => (
-          <React.Fragment key={k}>
-            {pad}
-            {"  "}
-            <span className={keyClass}>&quot;{k}&quot;</span>:{" "}
-            <JsonValue value={v} depth={depth + 1} keyClass={keyClass} valueClass={valueClass} />
-            {i < entries.length - 1 ? "," : ""}
-            {"\n"}
-          </React.Fragment>
-        ))}
-        {pad}
-        {"}"}
+        {"{"}
+        <span className={depth === 0 ? "block pl-[2ch]" : "block"}>
+          {entries.map(([k, v], i) => (
+            <span key={k} className="block pl-[2ch]">
+              {/* 懸掛縮排用 key 的負邊距做，不用 text-indent：text-indent 會被逐字動畫的 inline-block 繼承，字會疊在一起 */}
+              <span className={`${keyClass} ml-[-2ch]`}>&quot;{k}&quot;</span>:{" "}
+              <JsonValue
+                value={v}
+                depth={depth + 1}
+                keyClass={keyClass}
+                valueClass={valueClass}
+                trail={i < entries.length - 1 ? "," : ""}
+              />
+            </span>
+          ))}
+        </span>
+        <span className={depth === 0 ? "" : "block ml-[-2ch]"}>
+          {"}"}
+          {trail}
+        </span>
       </>
     );
   }
-  if (typeof value === "string") return <WaveText text={`"${value}"`} className={valueClass} />;
-  return <span className={valueClass}>{String(value)}</span>;
+  if (typeof value === "string")
+    return (
+      <>
+        <WaveText text={`"${value}"`} className={valueClass} />
+        {trail}
+      </>
+    );
+  return (
+    <>
+      <span className={valueClass}>{String(value)}</span>
+      {trail}
+    </>
+  );
 }
 
 // ---------------------------------------------------------------- hero
@@ -124,13 +143,13 @@ export function HeroBlock({ block }) {
         ) : null}
         {block.buttons?.length ? (
           <Reveal delay={300} type="fade-up" triggerOnMount={true}>
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-wrap gap-x-2 gap-y-3 sm:gap-4 items-center">
               {block.buttons.map((b) =>
                 b.style === "primary" ? (
                   <SmartLink
                     key={b.href}
                     href={b.href}
-                    className="bg-white text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2"
+                    className="bg-white text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2 whitespace-nowrap"
                   >
                     {b.label} <ArrowUpRight size={18} />
                   </SmartLink>
@@ -138,7 +157,7 @@ export function HeroBlock({ block }) {
                   <SmartLink
                     key={b.href}
                     href={b.href}
-                    className="text-zinc-400 hover:text-white px-6 py-3 transition-colors font-medium"
+                    className="text-zinc-400 hover:text-white px-4 sm:px-6 py-3 transition-colors font-medium whitespace-nowrap"
                   >
                     {b.label}
                   </SmartLink>
@@ -151,14 +170,14 @@ export function HeroBlock({ block }) {
 
       {t ? (
         <Reveal delay={400} type="scale" triggerOnMount={true}>
-          <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-6 md:p-8 font-mono text-sm shadow-2xl relative group w-full lg:max-w-2xl ml-auto">
+          <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-5 sm:p-6 md:p-8 font-mono text-[13px] sm:text-sm shadow-2xl relative group w-full lg:max-w-2xl ml-auto">
             <div className="flex gap-2 mb-4 border-b border-slate-800 pb-4">
               <div className="w-3 h-3 rounded-full bg-red-500/80" />
               <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
               <div className="w-3 h-3 rounded-full bg-green-500/80" />
             </div>
             <div className={`${toneText(t.commandTone, "text-emerald-400")} mb-2`}>➜ ~ {t.command}</div>
-            <pre className="text-slate-300 overflow-x-auto leading-relaxed">
+            <pre className="text-slate-300 whitespace-pre-wrap [overflow-wrap:anywhere] leading-relaxed">
               <code>
                 <JsonValue
                   value={t.data ?? {}}
@@ -316,7 +335,7 @@ function ProjectCard({ project, wide }) {
       </div>
       <div className="mt-auto flex flex-wrap gap-3">
         {project.links.map((link) => (
-          <SmartLink key={link.href} href={link.href} className="inline-flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors">
+          <SmartLink key={link.href} href={link.href} className="inline-flex items-center gap-1 py-1.5 -my-1.5 text-sm text-zinc-300 hover:text-white transition-colors">
             {link.label} <ArrowUpRight size={14} />
           </SmartLink>
         ))}

@@ -131,6 +131,8 @@ export function HomeClient({ home, projects, posts }) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   // 主題記在 localStorage，並同步到 <html data-theme>：文章頁也讀同一個屬性
   useLayoutEffect(() => {
+    // 掛載時讀一次開場腳本設定好的主題（伺服器端輸出一律是深色，不能在 useState 初始值讀 document）
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (document.documentElement.dataset.theme === "light") setIsDarkMode(false);
   }, []);
   const applyTheme = useCallback((dark) => {
@@ -145,7 +147,7 @@ export function HomeClient({ home, projects, posts }) {
 
   useEffect(() => {
     const handleResize = () => {
-      setMenuRadius(window.innerWidth < 768 ? 85 : 120);
+      setMenuRadius(window.innerWidth < 768 ? 112 : 120); // 4 顆 56px 按鈕排在 90° 弧上，半徑至少要 ~110 才不會重疊
     };
     handleResize();
     window.addEventListener("resize", handleResize);
