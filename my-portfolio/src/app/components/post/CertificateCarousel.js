@@ -73,7 +73,7 @@ export function CertificateCarousel({ certificates }) {
       </div>
 
       {items.length > 1 ? (
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center mt-2">
           {items.map((item, idx) => (
             <button
               key={item.image}
@@ -81,10 +81,15 @@ export function CertificateCarousel({ certificates }) {
               aria-label={`切換到 ${item.title}`}
               aria-current={index === idx}
               onClick={() => setIndex(idx)}
-              className={`h-2 rounded-full transition-all ${
-                index === idx ? "bg-amber-500 w-4" : "bg-zinc-700 hover:bg-zinc-500 w-2"
-              }`}
-            />
+              className="group px-2 py-3"
+            >
+              {/* 點本身只有 8px，外面的 padding 讓手指好按 */}
+              <span
+                className={`block h-2 rounded-full transition-all ${
+                  index === idx ? "bg-amber-500 w-4" : "bg-zinc-700 group-hover:bg-zinc-500 w-2"
+                }`}
+              />
+            </button>
           ))}
         </div>
       ) : null}

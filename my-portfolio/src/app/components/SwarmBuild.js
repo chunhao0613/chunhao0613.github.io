@@ -367,7 +367,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
         logState = "ok";
         logEl.classList.add("ok");
         logHead.textContent = "built";
-      } else if (logState === "ok" && now - idleSince > 2600) {
+      } else if (logState === "ok" && now - idleSince > (small ? 1200 : 2600)) {
         logState = "off";
         logEl.classList.remove("on");
       }

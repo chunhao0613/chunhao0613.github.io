@@ -489,6 +489,7 @@ body {
 @media (max-width: 767px) {
   .swarm-log { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 8px 10px; font-size: 9.5px; }
   .swarm-log li:nth-last-child(n + 4) { display: none; }
+  .swarm-log ol { min-height: 0; }
 }
 
 
