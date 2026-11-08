@@ -17,14 +17,15 @@
 //
 // 文字揭露只用 clip-path 與覆蓋層，不改動任何 DOM 文字，React、搜尋引擎、讀屏軟體不受影響。
 // 每個區塊進入畫面後有保底時間（依元素數量 2.6–5.5 秒），沒做完的直接彈出，絕不讓內容卡住。
-// 每個頁面在同一個分頁工作階段只播一次；手機、減少動態效果時完全不啟用。
+// 每個頁面在同一個分頁工作階段只播一次（重新整理會重播）；手機改用輕量版，減少動態效果時完全不啟用。
 // 開場前的隱藏由 layout.js 的內嵌腳本在第一次繪製前處理（設定見 src/lib/swarm.js），避免閃爍；
 // 站內換頁（沒有重新載入）則由這裡的 useLayoutEffect 在繪製前處理。
 //
 // 用法：
-//   <SwarmBuild />               完整版：尺規、參考線、間距標註、⌥ 複製都有（首頁）
-//   <SwarmBuild mode="light" />  輕量版：只有拉框、串流、去噪、上色與紀錄（文章頁）
-// 頁面上標了 data-swarm 的區塊才會被建造（<Reveal> 會自動加上）；
+//   <SwarmBuild />               完整版：尺規、參考線、間距標註、⌥ 複製都有（首頁、文章頁）
+//   <SwarmBuild mode="light" />  輕量版：只有拉框、串流、去噪、上色與紀錄（手機一律用這個）
+// 頁面上標了 data-swarm 的區塊才會被建造（<Reveal> 會自動加上）；每個區塊各自在進入畫面時開工，
+// 區塊裡面可以再放區塊（例如內文插入的首頁區塊），內層的會等自己進入畫面才建造。
 // 某個元素不想套用就加 data-swarm="off"，它和裡面的內容會照常直接顯示。
 
 import { useLayoutEffect } from "react";
@@ -208,7 +209,8 @@ export default function SwarmBuild({ mode: variant = "full" }) {
       for (const child of el.children) {
         const cs = getComputedStyle(child);
         if (cs.display === "none") continue; // 不看 visibility：開場前整個區塊是 hidden
-        if (child.getAttribute("data-swarm") === "off") continue; // 不套用：照常顯示
+        // data-swarm="off" 不套用、照常顯示；其他 data-swarm 是巢狀的另一個區塊，進入畫面時由它自己建造
+        if (child.hasAttribute("data-swarm")) continue;
         const r = child.getBoundingClientRect();
         if (r.width < 2 || r.height < 2) continue;
         const boxed = isBoxed(cs);

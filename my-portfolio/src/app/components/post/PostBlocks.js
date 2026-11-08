@@ -46,7 +46,7 @@ export function TagList({ tags }) {
 export function Highlights({ highlights, tags }) {
   if (!highlights?.items?.length) return null;
   return (
-    <section className={`${CARD} mb-12`}>
+    <section data-swarm="" className={`${CARD} mb-12`}>
       <SectionHeading icon={highlights.icon ?? "book"}>
         {highlights.title ?? "功能亮點"}
       </SectionHeading>
@@ -66,7 +66,7 @@ export function Highlights({ highlights, tags }) {
 export function LinkCards({ links }) {
   if (!links?.length) return null;
   return (
-    <section className="grid md:grid-cols-2 gap-6 mb-10">
+    <section data-swarm="" className="grid md:grid-cols-2 gap-6 mb-10">
       {links.map((link) => (
         <a
           key={link.href}
@@ -94,7 +94,7 @@ export function LinkCards({ links }) {
 export function NoteCards({ notes, children }) {
   if (!notes?.length && !children) return null;
   return (
-    <section className="grid lg:grid-cols-2 gap-6 mb-12">
+    <section data-swarm="" className="grid lg:grid-cols-2 gap-6 mb-12">
       {notes?.map((note) => (
         <div key={note.title} className={`${CARD} flex flex-col justify-center`}>
           <div>
@@ -113,7 +113,7 @@ export function AwardBanner({ award }) {
   const board = award.scoreboard;
 
   return (
-    <section className="bg-gradient-to-br from-amber-500/10 to-zinc-900/40 border border-amber-500/20 rounded-xl p-8 mb-12 relative overflow-hidden">
+    <section data-swarm="" className="bg-gradient-to-br from-amber-500/10 to-zinc-900/40 border border-amber-500/20 rounded-xl p-8 mb-12 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
         <Trophy size={160} className="text-amber-500" />
       </div>
@@ -184,7 +184,7 @@ export function AwardBanner({ award }) {
 export function Outline({ outline }) {
   if (!outline?.length) return null;
   return (
-    <div className={`${CARD} p-8`}>
+    <div data-swarm="" className={`${CARD} p-8`}>
       <h2 className="text-2xl font-bold mb-4">📝 文章尚在撰寫中</h2>
       <p className="text-zinc-400 mb-6">這篇文章將涵蓋以下主題：</p>
       <ul className="space-y-3 text-zinc-400">

@@ -61,8 +61,9 @@ const base = {
     ) : (
       <a href={href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-zinc-300 underline" {...props} />
     ),
-  table: ({ node, ...props }) => (
-    <div className="overflow-x-auto mb-6">
+  // data-swarm 放在外層捲動框上：建造效果才知道表格在可以左右捲動的框裡
+  table: ({ node, "data-swarm": swarm, ...props }) => (
+    <div data-swarm={swarm} className="overflow-x-auto mb-6">
       <table className="w-full text-sm text-zinc-400 border border-zinc-800 rounded-lg" {...props} />
     </div>
   ),
@@ -178,10 +179,10 @@ function Fence({ lang, source, ctx }) {
     }
   }
 
-  // data-swarm="off"：內文裡的區塊直接顯示，不參與「AI 建造」效果
+  // 文章頁（ctx.swarm）：區塊也參與「AI 建造」；其他頁面（展示頁）加 data-swarm="off" 直接顯示
   if (!ctx.showSource || lang !== "block") {
     return (
-      <div data-swarm="off" className="my-10">
+      <div data-swarm={ctx.swarm ? "" : "off"} className="my-10">
         {preview}
       </div>
     );
@@ -202,9 +203,18 @@ function Fence({ lang, source, ctx }) {
   );
 }
 
-// ctx：{ projects, posts } 給首頁區塊用；showSource：展示頁要同時顯示寫法
-export function MarkdownContent({ source, projects = [], posts = [], showSource = false }) {
-  const ctx = { projects, posts, showSource };
+// 「AI 建造」：把內文最外層的每個元素（段落、標題、清單、表格、程式碼…）各自標成一個區塊，
+// 讀到哪裡、建造到哪裡，不會一進頁面就把整篇文章排進去
+const rehypeSwarmBlocks = () => (tree) => {
+  for (const n of tree.children) {
+    if (n.type === "element") n.properties = { ...n.properties, dataSwarm: "" };
+  }
+};
+
+// ctx：{ projects, posts } 給首頁區塊用；showSource：展示頁要同時顯示寫法；
+// swarm：套用「AI 建造」效果（頁面上要有 <SwarmBuild />，否則內容會被藏到保底時間才出現）
+export function MarkdownContent({ source, projects = [], posts = [], showSource = false, swarm = false }) {
+  const ctx = { projects, posts, showSource, swarm };
   const components = {
     ...base,
     pre: ({ node, children, ...props }) => {
@@ -223,7 +233,7 @@ export function MarkdownContent({ source, projects = [], posts = [], showSource 
     },
   };
   return (
-    <Markdown remarkPlugins={[remarkGfm]} components={components}>
+    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={swarm ? [rehypeSwarmBlocks] : []} components={components}>
       {source}
     </Markdown>
   );

@@ -66,8 +66,8 @@ export default async function BlogPost({ params }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans pt-20 pb-20">
-      {/* 「AI 建造」輕量版：只建造標題區與封面，內文直接顯示，不讓讀者等 */}
-      <SwarmBuild mode="light" />
+      {/* 「AI 建造」完整版：標題、封面、文章區塊與內文的每一段，進入畫面時各自被建造 */}
+      <SwarmBuild />
       <div className={`${container} mx-auto px-6`}>
         <BackButton />
 
@@ -115,18 +115,18 @@ export default async function BlogPost({ params }) {
 
           {post.body ? (
             // 內文支援 ```block 區塊語法（見 content/README.md）
-            <MarkdownContent source={post.body} projects={getProjects()} posts={getAllPosts()} />
+            <MarkdownContent source={post.body} projects={getProjects()} posts={getAllPosts()} swarm />
           ) : null}
 
           {!post.body && !post.highlights && post.tags?.length ? (
-            <div className="mb-10">
+            <div data-swarm="" className="mb-10">
               <TagList tags={post.tags} />
             </div>
           ) : null}
 
           <Outline outline={post.outline} />
 
-          <section className="mt-12 pt-8 border-t border-zinc-800">
+          <section data-swarm="" className="mt-12 pt-8 border-t border-zinc-800">
             <p className="text-sm text-zinc-500">
               {post.draft
                 ? "文章仍在撰寫中。如果你有想看的內容或建議，歡迎"
