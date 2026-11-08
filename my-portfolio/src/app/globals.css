@@ -76,12 +76,15 @@ body {
 .swarm-intro [data-swarm="off"] {
   visibility: visible;
 }
-/* 建構進行中，關掉 Reveal 自己的滑入／淡入，進場完全交給游標 */
+/* 建構進行中，關掉 Reveal 自己的滑入／淡入，進場完全交給游標。
+   不加 !important：這裡沒有包在 @layer 裡，本來就蓋得過 Tailwind 的 opacity-0、translate-y-12 這類 class；
+   加了反而會蓋掉效果自己的設定——文章內文的標題、段落本身就是區塊，同時也是被建造的元素，
+   需要 .swarm-pending 把它藏到游標開工、需要行內的 scale 讓大標題從 18px 放大 */
 .swarm-on [data-swarm].swarm-managed {
-  opacity: 1 !important;
-  translate: none !important;
-  scale: none !important;
-  transition: none !important;
+  opacity: 1;
+  translate: none;
+  scale: none;
+  transition: none;
 }
 .swarm-pending {
   opacity: 0 !important;
