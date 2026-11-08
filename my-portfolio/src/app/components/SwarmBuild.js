@@ -17,13 +17,13 @@
 //
 // 文字揭露只用 clip-path 與覆蓋層，不改動任何 DOM 文字，React、搜尋引擎、讀屏軟體不受影響。
 // 每個區塊進入畫面後有保底時間（依元素數量 2.6–5.5 秒），沒做完的直接彈出，絕不讓內容卡住。
-// 每個頁面在同一個分頁工作階段只播一次（重新整理會重播）；手機改用輕量版，減少動態效果時完全不啟用。
+// 每個頁面在同一個分頁工作階段只播一次（重新整理會重播）；手機也是完整版，減少動態效果時完全不啟用。
 // 開場前的隱藏由 layout.js 的內嵌腳本在第一次繪製前處理（設定見 src/lib/swarm.js），避免閃爍；
 // 站內換頁（沒有重新載入）則由這裡的 useLayoutEffect 在繪製前處理。
 //
 // 用法：
 //   <SwarmBuild />               完整版：尺規、參考線、間距標註、⌥ 複製都有（首頁、文章頁）
-//   <SwarmBuild mode="light" />  輕量版：只有拉框、串流、去噪、上色與紀錄（手機一律用這個）
+//   <SwarmBuild mode="light" />  輕量版：只有拉框、串流、去噪、上色與紀錄（目前沒有頁面使用）
 // 頁面上標了 data-swarm 的區塊才會被建造（<Reveal> 會自動加上）；每個區塊各自在進入畫面時開工，
 // 區塊裡面可以再放區塊（例如內文插入的首頁區塊），內層的會等自己進入畫面才建造。
 // 某個元素不想套用就加 data-swarm="off"，它和裡面的內容會照常直接顯示。
@@ -159,10 +159,9 @@ const snippet = (el) => {
 export default function SwarmBuild({ mode: variant = "full" }) {
   // useLayoutEffect：站內換頁時在繪製前就把元素藏好，不會先閃一下
   useLayoutEffect(() => {
+    // 手機與桌機用同一套效果；手機只有建造紀錄比較小、做完比較早收起（見 globals.css 與下方 logTimer）
     const small = window.innerWidth < SWARM_MIN_WIDTH;
-    // 手機：一律精簡模式（不畫尺規、參考線、量測），鼠標也少一點
-    const features = small ? MODES.light : MODES[variant] || MODES.full;
-    const maxCursors = small ? 12 : MAX_CURSORS;
+    const features = MODES[variant] || MODES.full;
     const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const key = swarmKey(window.location.pathname);
@@ -205,26 +204,33 @@ export default function SwarmBuild({ mode: variant = "full" }) {
       block.tasks.push(t);
       return t;
     };
-    const walk = (el, parent, block) => {
-      for (const child of el.children) {
-        const cs = getComputedStyle(child);
-        if (cs.display === "none") continue; // 不看 visibility：開場前整個區塊是 hidden
-        // data-swarm="off" 不套用、照常顯示；其他 data-swarm 是巢狀的另一個區塊，進入畫面時由它自己建造
-        if (child.hasAttribute("data-swarm")) continue;
-        const r = child.getBoundingClientRect();
-        if (r.width < 2 || r.height < 2) continue;
-        const boxed = isBoxed(cs);
-        // 外框裡只包一張差不多大的圖片：合併成一個圖片任務，少等一層（圖片是最吸睛的元素）
-        const only = child.children.length === 1 ? child.children[0] : null;
-        const wrapsMedia =
-          boxed && only && MEDIA.test(only.tagName) && only.getBoundingClientRect().width * only.getBoundingClientRect().height > r.width * r.height * 0.8;
-        if (MEDIA.test(child.tagName) || wrapsMedia) mk(child, parent, isSmall(r) ? "icon" : "media", block, cs);
-        else if (isTextBlock(child)) mk(child, parent, boxed ? "leafbox" : "text", block, cs);
-        else if (boxed) walk(child, mk(child, parent, "container", block, cs), block);
-        else walk(child, parent, block);
-      }
+    // 一個元素該變成哪種任務。區塊本身也走這裡：文章內文的每一段、每個標題自己就是一個區塊，
+    // 不能只看它的子元素，否則沒有子元素的標題、段落裡的純文字都不會被建造
+    const visit = (el, parent, block, isRoot) => {
+      const cs = getComputedStyle(el);
+      if (cs.display === "none") return; // 不看 visibility：開場前整個區塊是 hidden
+      // data-swarm="off" 不套用、照常顯示；其他 data-swarm 是巢狀的另一個區塊，進入畫面時由它自己建造
+      if (!isRoot && el.hasAttribute("data-swarm")) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      const boxed = isBoxed(cs);
+      // 外框裡只包一張差不多大的圖片：合併成一個圖片任務，少等一層（圖片是最吸睛的元素）
+      const only = el.children.length === 1 ? el.children[0] : null;
+      const wrapsMedia =
+        boxed && only && MEDIA.test(only.tagName) && only.getBoundingClientRect().width * only.getBoundingClientRect().height > r.width * r.height * 0.8;
+      if (MEDIA.test(el.tagName) || wrapsMedia) mk(el, parent, isSmall(r) ? "icon" : "media", block, cs);
+      else if (isTextBlock(el)) {
+        const t = mk(el, parent, boxed ? "leafbox" : "text", block, cs);
+        // 單獨一行的行內文字（例如標題上方的日期）：建造時暫時當成 inline-block，
+        // 才能逐字揭露、縮放；只有一行時換成 inline-block 不會改變版面，做完就還原
+        if (cs.display === "inline" && el.getClientRects().length === 1) t.promote = true;
+      } else if (boxed) walk(el, mk(el, parent, "container", block, cs), block);
+      else walk(el, parent, block);
     };
-    blocks.forEach((b) => walk(b.el, null, b));
+    const walk = (el, parent, block) => {
+      for (const child of el.children) visit(child, parent, block, false);
+    };
+    blocks.forEach((b) => visit(b.el, null, b, true));
     tasks.forEach((t) => {
       t.el.classList.add("swarm-pending");
       t.prevSib = byEl.get(t.el.previousElementSibling) || null;
@@ -389,7 +395,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     const cursors = [];
     const getCursor = (x, y) => {
       let c = cursors.find((k) => !k.busy);
-      if (!c && cursors.length < maxCursors) {
+      if (!c && cursors.length < MAX_CURSORS) {
         const el = document.createElement("div");
         el.className = "swarm-cursor";
         el.dataset.mode = "arrow";
@@ -438,6 +444,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
 
     // ================================================================ 元素樣式
     const setStyle = (t, prop, v) => {
+      if (t.state === "done") return; // 已收尾（樣式已還原）的元素不能再改，否則會留下殘留的行內樣式
       if (!(prop in t.saved)) t.saved[prop] = t.el.style[prop];
       t.el.style[prop] = v;
     };
@@ -584,6 +591,8 @@ export default function SwarmBuild({ mode: variant = "full" }) {
         const R = Math.hypot(Math.max(lx, r.width - lx), Math.max(ly, r.height - ly)) + 20;
         const rim = `oklch(${layer.dataset.theme === "light" ? 0.6 : 0.75} 0.07 ${c.h} / 0.4)`;
         await animate(clamp(260 + R * 0.4, 320, 520), (k) => {
+          // 動畫跑在 requestAnimationFrame 上：上色途中被保底時間收尾的話，背景已經還原，不能再寫
+          if (t.state === "done") return;
           const rr = R * easeOut(k);
           t.el.style.backgroundImage = `radial-gradient(circle at ${lx}px ${ly}px, ${t.bg} ${rr}px, ${rim} ${rr + 1.5}px, transparent ${rr + 9}px)`;
         });
@@ -679,6 +688,7 @@ export default function SwarmBuild({ mode: variant = "full" }) {
     // ================================================================ 任務
     const jobText = async (t, c) => {
       const el = t.el;
+      if (t.promote) setStyle(t, "display", "inline-block"); // 見 visit()：結束時還原
       const er = pageRect(el);
       const lines = lineBoxes(el);
       if (!lines.length || t.cs.display === "inline") {

@@ -3,7 +3,7 @@
 // 只播一次是「每個頁面」各自計算：每個路徑一個 sessionStorage 鍵，
 // 看過首頁之後第一次打開某篇文章，那篇文章仍然會播。
 
-export const SWARM_MIN_WIDTH = 768; // 比這窄（手機）改用精簡模式播放
+export const SWARM_MIN_WIDTH = 768; // 比這窄算手機：效果相同，只是建造紀錄縮小、做完較早收起
 
 // 路徑正規化：靜態輸出可能帶 .html 或結尾斜線，視為同一頁
 export const swarmKey = (pathname) => {
